@@ -50,24 +50,25 @@ proc Proc_getNumIdleProcesses =
 %% ============ START WorkingProcess
 act r_isWorking, s_isWorking, isWorking:Bool;
 act r_taskProcessed, s_taskProcessed, taskProcessed:Nat;
-act r_runWatchdogThread, s_runWatchdogThread, runWatchdogThread:Nat;
-act doSomething;
+act r_runWatchdogThread, s_runWatchdogThread, runWatchdogThread:Nat#Nat;
+act doSomething, doSomethingElse;
 
-proc WorkingProcess_mem(__working:Bool,__taskCounter:Nat,__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool,__watchdogThread:Nat, __processThread:Nat,task:Task) = 
+proc WorkingProcess_mem(wpid:Nat, __working:Bool,__taskCounter:Nat,__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool,__watchdogThread:Nat, __processThread:Nat,task:Task) = 
       r_isWorking(__working).
-      WorkingProcess_mem(__working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
+      WorkingProcess_mem(wpid, __working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
     +
       r_taskProcessed(__taskCounter).
-      WorkingProcess_mem(__working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
+      WorkingProcess_mem(wpid, __working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
 
 ;
 
-proc WatchdogThread(id:Nat) = r_runWatchdogThread(id).doSomething.WatchdogThread(id);  %% TODO: change if os.getppid() == 1:
+proc WatchdogThread(wpid:Nat, wdtid:Nat) = runWatchdogThread(wpid,wdtid).doSomething.WatchdogThread(wpid,wdtid);  %% TODO: change if os.getppid() == 1:
 
 
-proc WorkingProcess = WorkingProcess_start;
+proc WorkingProcess(wpid:Nat) = WorkingProcess_start(wpid);
 
-WorkingProcess_start = s_runWatchdogThread(1);
+%WorkingProcess_start(wpid:Nat) = s_runWatchdogThread(wpid, 1);
+WorkingProcess_start(wpid:Nat) = WatchdogThread(wpid, 1) || doSomethingElse.doSomethingElse;
 
 
 %% ============ END WorkingProcess
@@ -92,7 +93,7 @@ init block(  { r_getMaxSize, s_getMaxSize, r_getMinSize, s_getMinSize,
         s_runWatchdogThread | r_runWatchdogThread -> runWatchdogThread
        },
         ProcessPool_mem(1,8,10,[],[],false,[],false) || __prListLock || ProcessPool || 
-        WorkingProcess_mem(false,0,[],[],false,1,1,T1) || WatchdogThread(1) || WorkingProcess
+        WorkingProcess_mem(1,false,0,[],[],false,1,1,T1) || WorkingProcess(1) %% this should be started by the ProcessPool
      ));
      
      
