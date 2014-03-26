@@ -127,3 +127,23 @@ I wound up gathering instrumentation which showed one of the SSH library threads
 This should have made a solid case for dumping SSH and that library altogether, but it didn't quite work out like that. Last I heard, they were still working on a way to safely allow fork() in a threaded process by running around and cleaning up mutexes in some kind of "at fork" handler.
 
 I wish I was making that up.
+
+
+Scribblings:
+-----------------------
+multiprocessing.Queue:
+http://docs.python.org/2/library/multiprocessing.html says "Queues are thread and process safe."
+On the other hand, we use locks all over the place:
+
+def queueTask(...
+...
+ self.__prListLock.acquire()
+    try:
+      self.__pendingQueue.put( task, block = blocking )
+    except Queue.Full:
+      self.__prListLock.release()
+      return S_ERROR( "Queue is full" )
+    finally:
+      self.__prListLock.release()
+-------------
+

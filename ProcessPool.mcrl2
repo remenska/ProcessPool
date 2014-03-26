@@ -1,12 +1,81 @@
-
+sort Task = struct T1 | T2 | T3;
+sort Worker = struct W1 | W2 | W3 | W4;
+map workersDict: Nat -> Worker;
+     
 act action1, action2,action3;
-act canRun,willRun,runThread,actionThread:Nat;
-proc Thread(id:Nat) = willRun(id).actionThread(id).Thread(id);
+act canRunThread,willRunThread,runThreadAction,actionThread:Nat;
+act r_acquire_lock,r_release_lock, acquire_lock:Nat;
+act s_acquire_lock,s_release_lock, release_lock:Nat;
 
-proc MainProcess = action1.canRun(1).action2.canRun(2).action3.MainProcess;
+
+act s__prListLock_acquire,r__prListLock_acquire;
+act s__prListLock_release,r__prListLock_release;
+
+proc Thread(id:Nat) = willRunThread(id).
+	s_acquire_lock(id).
+	  actionThread(id).
+	s_release_lock(id)
+.Thread(id);
+
+proc Locker = sum pid:Nat.r_acquire_lock(pid).r_release_lock(pid)
+.Locker;
+
+proc __prListLock = 
+	r__prListLock_acquire.
+	r__prListLock_release.
+__prListLock;
+
+proc MainProcess = action1.
+    canRunThread(1). % spawn thread1
+      action2.
+    canRunThread(2). % spawn thread2
+      action3.
+    canRunThread(3)  
+  .MainProcess;
+
+  
+%%% START HERE
+
+act r_getMaxSize, s_getMaxSize, getMaxSize:Nat;
+act r_getMinSize, s_getMinSize, getMinSize:Nat;
+act r_getNumWorkingProcesses, s_getNumWorkingProcesses, getNumWorkingProcesses:Nat;
+act r_getNumIdleProcesses, s_getNumIdleProcesses, getNumIdleProcesses:Nat;
+
+proc ProcessPool_mem(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat,__pendingQueue:List(Task), __resultsQueue:List(Task), __stopEvent:Bool, __workersDict:List(Worker), __draining:Bool) = 
+        r_getMaxSize(__maxSize).
+	  ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+        +
+        r_getMinSize(__minSize).
+        ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+	+
+	r_getNumWorkingProcesses(getWorkingProcesses(__workersDict). %% TODO: implement map getWorkingPocesses
+	ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+	+
+	r_getNumIdleProcesses(getIdleProcesses(__workersDict). %% TODO: implement map getIdlePocesses
+	ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+;
+
+proc getNumWorkingProcesses = 
+  s__prListLock_acquire. 
+    sum wp:Nat.s_getNumWorkingProcesses(wp).
+  s__prListLock_release;
+
+proc getNumIdleProcesses = 
+  s__prListLock_acquire. 
+    sum wp:Nat.s_getNumIdleProcesses(wp).
+  s__prListLock_release;
+  
+proc ProcessPool_init(__pendingQueue:Set(Task),__resultsQueue:Set(Task),__prListLock,__workersDict:List(Worker)) = __spawnNeededWorkingProcesses;
+
+proc __spawnNeededWorkingProcesses = __cleanDeadProcesses;
+
+__cleanDeadProcesses
 
 
-init block(  { canRun, willRun },
-       comm( { canRun|willRun->runThread },
-         MainProcess || Thread(1) || Thread(2) 
+init block(  { canRunThread, willRunThread, r_acquire_lock, s_acquire_lock,r_release_lock,s_release_lock },
+       comm( { canRunThread|willRunThread->runThreadAction,
+        s_acquire_lock|r_acquire_lock -> acquire_lock,
+        s_release_lock|r_release_lock -> release_lock
+       },
+         MainProcess || Thread(1) || Thread(2) || Thread(3) || Locker
      ));

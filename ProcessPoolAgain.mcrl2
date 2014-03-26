@@ -1,0 +1,61 @@
+%%% START HERE
+sort Task = struct T1 | T2 | T3;
+sort Worker = struct W1 | W2 | W3 | W4;
+
+act r_getMaxSize, s_getMaxSize, getMaxSize:Nat;
+act r_getMinSize, s_getMinSize, getMinSize:Nat;
+act r_getNumWorkingProcesses, s_getNumWorkingProcesses, getNumWorkingProcesses:Nat;
+act r_getNumIdleProcesses, s_getNumIdleProcesses, getNumIdleProcesses:Nat;
+
+
+act s__prListLock_acquire,r__prListLock_acquire,__prListLock_acquire;
+act s__prListLock_release,r__prListLock_release,__prListLock_release;
+
+proc __prListLock = 
+	r__prListLock_acquire.
+	r__prListLock_release.
+__prListLock;
+
+proc ProcessPool_mem(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat,__pendingQueue:List(Task), __resultsQueue:List(Task), __stopEvent:Bool, __workersDict:List(Worker), __draining:Bool) = 
+        r_getMaxSize(__maxSize).
+	  ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+        +
+        r_getMinSize(__minSize).
+        ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+	+
+	%r_getNumWorkingProcesses(getWorkingProcesses(__workersDict)). %% TODO: implement map getWorkingPocesses
+	r_getNumWorkingProcesses(0). 
+	ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+	+
+	%r_getNumIdleProcesses(getIdleProcesses(__workersDict). %% TODO: implement map getIdlePocesses
+	r_getNumIdleProcesses(1).
+	ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+;
+
+proc ProcessPool = Proc_getNumWorkingProcesses.Proc_getNumIdleProcesses.ProcessPool;
+
+proc Proc_getNumWorkingProcesses = 
+  s__prListLock_acquire. 
+    sum wp:Nat.s_getNumWorkingProcesses(wp).
+  s__prListLock_release;
+
+proc Proc_getNumIdleProcesses = 
+  s__prListLock_acquire. 
+    sum wp:Nat.s_getNumIdleProcesses(wp).
+  s__prListLock_release;
+
+init block(  { r_getMaxSize, s_getMaxSize, r_getMinSize, s_getMinSize,
+	  r_getNumWorkingProcesses,s_getNumWorkingProcesses,
+	  r_getNumIdleProcesses,s_getNumIdleProcesses,
+	  s__prListLock_acquire, r__prListLock_acquire,
+	  s__prListLock_release, r__prListLock_release
+	  },
+       comm( { r_getMaxSize|s_getMaxSize->getMaxSize,
+        r_getMinSize | s_getMinSize -> getMinSize,
+        r_getNumWorkingProcesses | s_getNumWorkingProcesses -> getNumWorkingProcesses,
+        r_getNumIdleProcesses | s_getNumIdleProcesses -> getNumIdleProcesses,
+        s__prListLock_acquire | r__prListLock_acquire -> __prListLock_acquire,
+        s__prListLock_release | r__prListLock_release -> __prListLock_release
+       },
+        ProcessPool_mem(1,8,10,[],[],false,[],false) || __prListLock || ProcessPool
+     ));
