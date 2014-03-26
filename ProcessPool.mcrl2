@@ -1,0 +1,12 @@
+
+act action1, action2,action3;
+act canRun,willRun,runThread,actionThread:Nat;
+proc Thread(id:Nat) = willRun(id).actionThread(id).Thread(id);
+
+proc MainProcess = action1.canRun(1).action2.canRun(2).action3.MainProcess;
+
+
+init block(  { canRun, willRun },
+       comm( { canRun|willRun->runThread },
+         MainProcess || Thread(1) || Thread(2) 
+     ));
