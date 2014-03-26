@@ -1,7 +1,8 @@
 %%% START HERE
 sort Task = struct T1 | T2 | T3;
-sort Worker = struct W1 | W2 | W3 | W4;
+sort Worker = struct W(id:Nat,isWorking:Bool);
 
+%% ============ ProcessPool
 act r_getMaxSize, s_getMaxSize, getMaxSize:Nat;
 act r_getMinSize, s_getMinSize, getMinSize:Nat;
 act r_getNumWorkingProcesses, s_getNumWorkingProcesses, getNumWorkingProcesses:Nat;
@@ -43,19 +44,55 @@ proc Proc_getNumIdleProcesses =
   s__prListLock_acquire. 
     sum wp:Nat.s_getNumIdleProcesses(wp).
   s__prListLock_release;
+  
+%% ============ END ProcessPool
+
+%% ============ START WorkingProcess
+act r_isWorking, s_isWorking, isWorking:Bool;
+act r_taskProcessed, s_taskProcessed, taskProcessed:Nat;
+act r_runWatchdogThread, s_runWatchdogThread, runWatchdogThread:Nat;
+act doSomething;
+
+proc WorkingProcess_mem(__working:Bool,__taskCounter:Nat,__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool,__watchdogThread:Nat, __processThread:Nat,task:Task) = 
+      r_isWorking(__working).
+      WorkingProcess_mem(__working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
+    +
+      r_taskProcessed(__taskCounter).
+      WorkingProcess_mem(__working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
+
+;
+
+proc WatchdogThread(id:Nat) = r_runWatchdogThread(id).doSomething.WatchdogThread(id);  %% TODO: change if os.getppid() == 1:
+
+
+proc WorkingProcess = WorkingProcess_start;
+
+WorkingProcess_start = s_runWatchdogThread(1);
+
+
+%% ============ END WorkingProcess
 
 init block(  { r_getMaxSize, s_getMaxSize, r_getMinSize, s_getMinSize,
 	  r_getNumWorkingProcesses,s_getNumWorkingProcesses,
 	  r_getNumIdleProcesses,s_getNumIdleProcesses,
 	  s__prListLock_acquire, r__prListLock_acquire,
-	  s__prListLock_release, r__prListLock_release
+	  s__prListLock_release, r__prListLock_release,
+	  s_isWorking, r_isWorking,
+	  s_taskProcessed, r_taskProcessed,
+	  s_runWatchdogThread, r_runWatchdogThread
 	  },
        comm( { r_getMaxSize|s_getMaxSize->getMaxSize,
         r_getMinSize | s_getMinSize -> getMinSize,
         r_getNumWorkingProcesses | s_getNumWorkingProcesses -> getNumWorkingProcesses,
         r_getNumIdleProcesses | s_getNumIdleProcesses -> getNumIdleProcesses,
         s__prListLock_acquire | r__prListLock_acquire -> __prListLock_acquire,
-        s__prListLock_release | r__prListLock_release -> __prListLock_release
+        s__prListLock_release | r__prListLock_release -> __prListLock_release,
+        s_isWorking | r_isWorking -> isWorking,
+        s_taskProcessed | r_taskProcessed -> taskProcessed,
+        s_runWatchdogThread | r_runWatchdogThread -> runWatchdogThread
        },
-        ProcessPool_mem(1,8,10,[],[],false,[],false) || __prListLock || ProcessPool
+        ProcessPool_mem(1,8,10,[],[],false,[],false) || __prListLock || ProcessPool || 
+        WorkingProcess_mem(false,0,[],[],false,1,1,T1) || WatchdogThread(1) || WorkingProcess
      ));
+     
+     
