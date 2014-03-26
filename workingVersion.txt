@@ -1,0 +1,208 @@
+[pid 12258] gettimeofday( <unfinished ...>
+[pid  9990] <... select resumed> )      = 0 (Timeout)
+[pid 12258] <... gettimeofday resumed> {1395740400, 835348}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 835556}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 835757}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 835954}, NULL) = 0
+[pid  9990] futex(0x367e740, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 12258] futex(0x367e740, FUTEX_WAKE_PRIVATE, 1) = 1
+[pid  9990] <... futex resumed> )       = 0
+[pid  9990] gettimeofday({1395740400, 840229}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000} <unfinished ...>
+
+
+[pid 12258] gettimeofday({1395740400, 871520}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 871653}, NULL) = 0
+[pid 12258] open("/tmp/dirac/tmpK0DBxX", O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW, 0600) = 8
+[pid 12258] fcntl(8, F_GETFD)           = 0
+[pid 12258] fcntl(8, F_SETFD, FD_CLOEXEC) = 0
+[pid 12258] close(8)                    = 0
+[pid 12258] open("/tmp/dirac/tmpK0DBxX", O_WRONLY|O_CREAT|O_TRUNC, 0666) = 8
+[pid 12258] fstat(8, {st_mode=S_IFREG|0600, st_size=0, ...}) = 0
+[pid 12258] fstat(8, {st_mode=S_IFREG|0600, st_size=0, ...}) = 0
+[pid 12258] mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f48d1163000
+[pid 12258] write(8, "-----BEGIN CERTIFICATE-----\nMIIC"..., 8192) = 8192
+[pid 12258] write(8, "AUCAgEwEQYJYIZIAYb4QgEB\nBAQDAgWg"..., 737) = 737
+[pid 12258] close(8)                    = 0
+[pid 12258] munmap(0x7f48d1163000, 4096) = 0
+[pid 12258] chmod("/tmp/dirac/tmpK0DBxX", 0600) = 0
+[pid 12258] gettimeofday({1395740400, 873706}, NULL) = 0
+[pid 12258] pipe([8, 10])               = 0
+[pid 12258] pipe([11, 12])              = 0
+[pid 12258] pipe([13, 14])              = 0
+[pid 12258] fcntl(14, F_GETFD)          = 0
+[pid 12258] fcntl(14, F_SETFD, FD_CLOEXEC) = 0
+[pid 12258] clone(child_stack=0, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x7f48b751b9d0) = 13181
+[pid 12258] close(14)                   = 0
+[pid 12258] close(10)                   = 0
+[pid 12258] close(12)                   = 0
+[pid 12258] read(13, "", 1048576)       = 0
+[pid 12258] madvise(0x7f48b0091000, 917504, MADV_DONTNEED) = 0
+[pid 12258] close(13)                   = 0
+[pid 12258] fcntl(8, F_GETFL)           = 0 (flags O_RDONLY)
+[pid 12258] fstat(8, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+[pid 12258] mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f48d1163000
+[pid 12258] lseek(8, 0, SEEK_CUR)       = -1 ESPIPE (Illegal seek)
+[pid 12258] fstat(8, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+[pid 12258] munmap(0x7f48d1163000, 4096) = 0
+[pid 12258] fcntl(11, F_GETFL)          = 0 (flags O_RDONLY)
+[pid 12258] fstat(11, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+[pid 12258] mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f48d1163000
+[pid 12258] lseek(11, 0, SEEK_CUR)      = -1 ESPIPE (Illegal seek)
+[pid 12258] fstat(11, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+[pid 12258] munmap(0x7f48d1163000, 4096) = 0
+[pid 12258] gettimeofday({1395740400, 881872}, NULL) = 0
+[pid 12258] wait4(13181, 0x7f48b7517d84, WNOHANG, NULL) = 0
+[pid 12258] fstat(8, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+[pid 12258] fstat(11, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+[pid 12258] select(12, [8 11], [], [], {1, 0} <unfinished ...>
+[pid  9990] <... select resumed> )      = 0 (Timeout)
+[pid  9990] gettimeofday({1395740400, 892244}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000} <unfinished ...>
+[pid 12258] <... select resumed> )      = 1 (in [8], left {0, 979879})
+[pid 12258] select(9, [8], [], [], {1, 0}) = 1 (in [8], left {0, 999997})
+[pid 12258] mmap(NULL, 52432896, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f48acdff000
+[pid 12258] read(8, "subject   : /C=DE/O=GermanGrid/O"..., 52428800) = 733
+[pid 12258] mremap(0x7f48acdff000, 52432896, 4096, MREMAP_MAYMOVE) = 0x7f48acdff000
+[pid 12258] select(9, [8], [], [], {1, 0}) = 1 (in [8], left {0, 999808})
+[pid 12258] --- SIGCHLD (Child exited) @ 0 (0) ---
+[pid 12258] mmap(NULL, 52432896, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f48a4dff000
+[pid 12258] read(8, "", 52428800)       = 0
+[pid 12258] mremap(0x7f48a4dff000, 52432896, 4096, MREMAP_MAYMOVE) = 0x7f48a4dff000
+[pid 12258] munmap(0x7f48a4dff000, 4096) = 0
+[pid 12258] gettimeofday({1395740400, 931845}, NULL) = 0
+[pid 12258] select(0, NULL, NULL, NULL, {0, 10000}) = 0 (Timeout)
+[pid 12258] wait4(13181, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], WNOHANG, NULL) = 13181
+[pid 12258] fstat(8, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+[pid 12258] fstat(11, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+[pid 12258] select(12, [8 11], [], [], {1, 0}) = 2 (in [8 11], left {0, 999997})
+[pid 12258] select(9, [8], [], [], {1, 0}) = 1 (in [8], left {0, 999998})
+[pid 12258] mmap(NULL, 52432896, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f48a4dff000
+[pid 12258] read(8, "", 52428800)       = 0
+[pid 12258] mremap(0x7f48a4dff000, 52432896, 4096, MREMAP_MAYMOVE) = 0x7f48a4dff000
+[pid 12258] munmap(0x7f48a4dff000, 4096) = 0
+[pid 12258] select(12, [11], [], [], {1, 0}) = 1 (in [11], left {0, 999998})
+[pid 12258] mmap(NULL, 52432896, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f48a4dff000
+[pid 12258] read(11, "", 52428800)      = 0
+[pid 12258] mremap(0x7f48a4dff000, 52432896, 4096, MREMAP_MAYMOVE) = 0x7f48a4dff000
+[pid 12258] munmap(0x7f48a4dff000, 4096) = 0
+[pid 12258] close(8)                    = 0
+[pid 12258] close(11)                   = 0
+[pid 12258] wait4(13181, 0x7f48b7517954, WNOHANG, NULL) = -1 ECHILD (No child processes)
+[pid 12258] unlink("/tmp/dirac/tmpK0DBxX") = 0
+[pid 12258] gettimeofday({1395740400, 945457}, NULL) = 0
+[pid 12258] munmap(0x7f48acdff000, 4096) = 0
+[pid 12258] gettimeofday({1395740400, 946253}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 946445}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 946640}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 946839}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 947362}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 947563}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 948723}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 948995}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 949515}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 949964}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 950479}, NULL) = 0
+[pid 12258] gettimeofday( <unfinished ...>
+[pid  9990] <... select resumed> )      = 0 (Timeout)
+[pid  9990] futex(0x367e740, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 12258] <... gettimeofday resumed> {1395740400, 950722}, NULL) = 0
+[pid 12258] futex(0x367e740, FUTEX_WAKE_PRIVATE, 1) = 1
+[pid  9990] <... futex resumed> )       = 0
+[pid  9990] gettimeofday({1395740400, 950947}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000} <unfinished ...>
+[pid 12258] gettimeofday({1395740400, 951498}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 951679}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 951882}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 952316}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 952536}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 952862}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 953136}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 955010}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 955382}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 955583}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 955786}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 956355}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 956556}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 956746}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 956938}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 957412}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 958355}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 958533}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 958688}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 958864}, NULL) = 0
+[pid 12258] gettimeofday({1395740400, 959082}, NULL) = 0
+[pid 12258] pipe([8, 10])               = 0
+[pid 12258] clone(child_stack=0, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x7f48b751b9d0) = 13182
+[pid 12258] close(10)                   = 0
+[pid 12258] fstat(8, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0
+[pid 12258] select(9, [8], [], [], {540, 0} <unfinished ...>
+[pid  9990] <... select resumed> )      = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 14736}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 71064}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 130764}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 191939}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 256953}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 313461}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 364487}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 415208}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 474588}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 525094}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 575533}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 625989}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 680966}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 733151}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 789535}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 840290}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 890669}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 941199}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740401, 995267}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740402, 45661}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740402, 108534}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+[pid  9990] gettimeofday({1395740402, 159226}, NULL) = 0
+[pid  9990] select(0, NULL, NULL, NULL, {0, 50000}^C <unfinished ...>
+
+
+----------
+[pid 19015] gettimeofday( <unfinished ...>
+[pid  5072] <... select resumed> )      = 0 (Timeout)
+[pid  5072] futex(0x2cc6a40, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 19015] <... gettimeofday resumed> {1395743556, 167381}, NULL) = 0
+[pid 19015] futex(0x2cc6a40, FUTEX_WAKE_PRIVATE, 1) = 1
+[pid  5072] <... futex resumed> )       = 0
+[pid  5072] gettimeofday({1395743556, 167614}, NULL) = 0
+[pid  5072] select(0, NULL, NULL, NULL, {0, 50000} <unfinished ...>
+[pid 19015] gettimeofday({1395743556, 201987}, NULL) = 0
+[pid 19015] gettimeofday( <unfinished ...>
+[pid  5072] <... select resumed> )      = 0 (Timeout)
+[pid  5072] futex(0x2cc6a40, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 19015] <... gettimeofday resumed> {1395743556, 249301}, NULL) = 0
+[pid 19015] futex(0x2cc6a40, FUTEX_WAKE_PRIVATE, 1) = 1
+[pid  5072] <... futex resumed> )       = 0
+[pid  5072] gettimeofday({1395743556, 276888}, NULL) = 0
+[pid  5072] select(0, NULL, NULL, NULL, {0, 50000} <unfinished ...>
+[pid 19015] gettimeofday({1395743556, 282083}, NULL) = 0
+[pid 19015] gettimeofday(^C <unfinished ...>
+
+

@@ -1,0 +1,30 @@
+2014-03-24 04:02:06 UTC RequestManagement/RequestExecutingAgent NOTICE:  Average execution time: 16.27 seconds 
+2014-03-24 04:02:06 UTC RequestManagement/RequestExecutingAgent NOTICE:  Polling time: 60 seconds 
+2014-03-24 04:02:06 UTC RequestManagement/RequestExecutingAgent NOTICE:  Average execution/polling time: 27.12% 
+2014-03-24 04:02:06 UTC RequestManagement/RequestExecutingAgent NOTICE:  Cycle was successful 
+2014-03-24 04:02:06 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE: Starting cycle for module RequestManagement/RequestExecutingAgent 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE: Remaining 203 of 500 cycles 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent   INFO: execute: no more 'Waiting' requests to process 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE: Agent module RequestManagement/RequestExecutingAgent run summary 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE:  Executed 298 times previously 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE:  Cycle took 0.30 seconds 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE:  Average execution time: 16.22 seconds 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE:  Polling time: 60 seconds 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE:  Average execution/polling time: 27.03% 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE:  Cycle was successful 
+2014-03-24 04:03:06 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-24 04:04:06 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-24 04:04:06 UTC RequestManagement/RequestExecutingAgent NOTICE: Starting cycle for module RequestManagement/RequestExecutingAgent 
+2014-03-24 04:04:06 UTC RequestManagement/RequestExecutingAgent NOTICE: Remaining 202 of 500 cycles 
+2014-03-24 04:04:06 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-24 04:04:07 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 1 
+2014-03-24 04:04:07 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request '00035156_00013895' 
+2014-03-24 04:04:07 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request 00035156_00013895 is 900 
+2014-03-24 04:04:08 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 1 
+2014-03-24 04:04:08 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request '00035156_00013886' 
+2014-03-24 04:04:08 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request 00035156_00013886 is 900 
+

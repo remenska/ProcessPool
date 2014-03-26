@@ -1,0 +1,495 @@
+Process 25557 attached with 4 threads - interrupt to quit
+[pid 25678] futex(0x1dd82d0, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 25679] write(4, "\0\0\10\355\200\2cDIRAC.Core.Utilities.Proc"..., 2289 <unfinished ...>
+[pid 25590] select(0, NULL, NULL, NULL, {0, 959044} <unfinished ...>
+[pid 25557] futex(0x7f3707b4c000, FUTEX_WAIT, 0, NULL <unfinished ...>
+[pid 25590] <... select resumed> )      = 0 (Timeout)
+[pid 25590] gettimeofday({1395735388, 310121}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735389, 315100}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735390, 330105}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735391, 344753}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735392, 349552}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735393, 358456}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735394, 363537}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735395, 387325}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735396, 401523}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}^C <unfinished ...>
+Process 25557 detached
+Process 25590 detached
+Process 25678 detached
+Process 25679 detached
+---------------
+[dirac@lbvobox02 log]$ strace -f -p 27255
+Process 27255 attached with 2 threads - interrupt to quit
+[pid 27256] select(0, NULL, NULL, NULL, {3, 141595} <unfinished ...>
+[pid 27255] futex(0xb714f0, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 27256] <... select resumed> )      = 0 (Timeout)
+[pid 27256] getppid()                   = 25557
+[pid 27256] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid 27256] getppid()                   = 25557
+[pid 27256] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid 27256] getppid()                   = 25557
+[pid 27256] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid 27256] getppid()                   = 25557
+[pid 27256] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid 27256] getppid()                   = 25557
+[pid 27256] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid 27256] getppid()                   = 25557
+[pid 27256] select(0, NULL, NULL, NULL, {5, 0}
+
+This is supposedly the watchdog, updates every 5 seconds:
+
+ def __watchdog( self ):
+    """ watchdog thread target
+
+    terminating/killing WorkingProcess when parent process is dead
+
+    :param self: self reference
+    """
+    while True:      
+      ## parent is dead,  commit suicide
+      if os.getppid() == 1:
+        os.kill( self.pid, signal.SIGTERM )
+        ## wait for half a minute and if worker is still alive use REAL silencer
+        time.sleep(30)
+        ## now you're dead
+        os.kill( self.pid, signal.SIGKILL )
+      ## wake me up in 5 seconds
+      time.sleep(5)
+
+but the task itself is not spawned like it should below:
+in:
+def run( self ):
+....
+ self.__watchdogThread = threading.Thread( target = self.__watchdog )
+    self.__watchdogThread.daemon = True
+    self.__watchdogThread.start()
+...
+# process task in a separate thread
+      self.__processThread = threading.Thread( target = self.__processTask )
+      self.__processThread.start()
+
+
+-----------------
+
+----------
+[dirac@lbvobox02 log]$ strace -f -p 25557
+Process 25557 attached with 4 threads - interrupt to quit
+[pid 25678] futex(0x1dd82d0, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 25679] write(4, "\0\0\10\355\200\2cDIRAC.Core.Utilities.Proc"..., 2289 <unfinished ...>
+[pid 25590] select(0, NULL, NULL, NULL, {0, 893647} <unfinished ...>
+[pid 25557] futex(0x7f3707b4c000, FUTEX_WAIT, 0, NULL <unfinished ...>
+[pid 25590] <... select resumed> )      = 0 (Timeout)
+[pid 25590] gettimeofday({1395735811, 306728}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735812, 312036}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735813, 317449}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735814, 327767}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735815, 332450}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735816, 342629}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735817, 374477}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735818, 387875}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735819, 390728}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735820, 400668}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735821, 409304}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735822, 423775}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735823, 429698}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735824, 452545}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735825, 468065}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735826, 472442}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735827, 490466}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735828, 504153}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735829, 509656}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735830, 518887}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735831, 528203}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735832, 536077}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735833, 537501}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735834, 543915}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735835, 553149}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735836, 573167}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735837, 600873}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735838, 605544}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735839, 616568}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735840, 628805}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735841, 649812}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735842, 654410}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735843, 673493}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {0, 408391}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735844, 88381}, NULL) = 0
+[pid 25590] gettimeofday({1395735844, 90983}, NULL) = 0
+[pid 25590] gettimeofday({1395735844, 91083}, NULL) = 0
+[pid 25590] gettimeofday({1395735844, 91148}, NULL) = 0
+[pid 25590] gettimeofday({1395735844, 91224}, NULL) = 0
+[pid 25590] gettimeofday({1395735844, 91308}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735845, 92368}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735846, 92731}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735847, 111160}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735848, 127194}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735849, 132974}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735850, 133930}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735851, 145510}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735852, 155514}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735853, 165510}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735854, 172818}, NULL) = 0
+[pid 25590] gettimeofday({1395735870, 49850}, NULL) = 0
+[pid 25590] stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+[pid 25590] gettimeofday({1395735870, 50024}, NULL) = 0
+[pid 25590] gettimeofday({1395735870, 50159}, NULL) = 0
+[pid 25590] clone(child_stack=0x7f36f7168ff0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f36f71699d0, tls=0x7f36f7169700, child_tidptr=0x7f36f71699d0) = 29249
+[pid 25590] futex(0x7f36f80280a0, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xa6fe90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xa6fe90, FUTEX_WAKE_PRIVATE, 1) = 1
+[pid 25590] gettimeofday({1395735870, 66494}, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAKE_PRIVATE, 1) = 1
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] gettimeofday({1395735870, 83469}, NULL) = 0
+[pid 25590] gettimeofday({1395735870, 83541}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735871, 85091}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735872, 85526}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735873, 96370}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735874, 98256}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735875, 104309}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735876, 109587}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735877, 125575}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735878, 135528}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735879, 150838}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735880, 176850}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735881, 251070}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735882, 262221}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735883, 277857}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735884, 349005}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735885, 353967}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735886, 366589}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735887, 381614}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735888, 386574}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735889, 393001}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735890, 397141}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735891, 407652}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735892, 412706}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735893, 425742}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735894, 440527}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735895, 451568}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735896, 454185}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735897, 456168}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735898, 461563}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735899, 471731}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735900, 473335}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735901, 485341}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735902, 492734}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735903, 504061}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {0, 586997}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735904, 94708}, NULL) = 0
+[pid 25590] gettimeofday({1395735904, 94864}, NULL) = 0
+[pid 25590] gettimeofday({1395735904, 95152}, NULL) = 0
+[pid 25590] gettimeofday({1395735904, 96762}, NULL) = 0
+[pid 25590] gettimeofday({1395735904, 140902}, NULL) = 0
+[pid 25590] gettimeofday({1395735904, 166240}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735905, 190791}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735906, 198315}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735907, 207589}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735908, 210809}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735909, 216668}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735910, 234588}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735911, 251973}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735912, 261007}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735913, 280930}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735914, 290425}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735915, 297515}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735916, 304075}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735917, 361596}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735918, 454269}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735919, 456453}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735920, 463730}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735921, 491826}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735922, 495464}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735923, 505338}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735924, 519159}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735925, 531540}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735926, 538929}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735927, 545860}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735928, 576994}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735929, 592327}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735930, 604202}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735931, 619825}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735932, 633224}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735933, 651437}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735934, 665349}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735935, 670364}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735936, 672282}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735937, 673758}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735938, 678634}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735939, 683223}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735940, 683573}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735941, 689741}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735942, 698791}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735943, 703935}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735944, 718142}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735945, 722884}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735946, 723917}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735947, 729269}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735948, 730857}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735949, 745178}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735950, 749727}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735951, 750853}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735952, 759265}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735953, 773156}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735954, 778556}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735955, 805965}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735956, 811605}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735957, 823527}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735958, 847648}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735959, 852230}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735960, 856700}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735961, 867485}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735962, 880860}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735963, 894616}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {0, 244388}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735964, 149545}, NULL) = 0
+[pid 25590] gettimeofday({1395735964, 149634}, NULL) = 0
+[pid 25590] gettimeofday({1395735964, 149694}, NULL) = 0
+[pid 25590] gettimeofday({1395735964, 149757}, NULL) = 0
+[pid 25590] gettimeofday({1395735964, 149828}, NULL) = 0
+[pid 25590] gettimeofday({1395735964, 149913}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735965, 151605}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735966, 157676}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735967, 158883}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735968, 160772}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735969, 169550}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735970, 174517}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735971, 186350}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735972, 196292}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735973, 268908}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735974, 295344}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735975, 300310}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735976, 300689}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735977, 316405}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 25590] gettimeofday({1395735978, 349259}, NULL) = 0
+[pid 25590] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+
+-----------
+
+[pid 25590] clone(child_stack=0x7f36f7168ff0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f36f71699d0, tls=0x7f36f7169700, child_tidptr=0x7f36f71699d0) = 24163
+[pid 25590] futex(0x7f36f80280a0, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+[pid 25590] futex(0xb08a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+
+-----------------
+2014-03-25 07:03:51 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 0 
+2014-03-25 07:03:51 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request '00034282_00009241' 
+2014-03-25 07:03:51 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request 00034282_00009241 is 900 
+2014-03-25 07:03:52 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 0 
+2014-03-25 07:03:52 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request '00035156_00014789' 
+2014-03-25 07:03:52 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request 00035156_00014789 is 900 
+2014-03-25 07:03:52 UTC RequestManagement/RequestExecutingAgent   INFO: execute: no more 'Waiting' requests to process 
+
+2014-03-25 07:08:51 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-25 07:08:51 UTC RequestManagement/RequestExecutingAgent NOTICE: Starting cycle for module RequestManagement/RequestExecutingAgent 
+2014-03-25 07:08:51 UTC RequestManagement/RequestExecutingAgent NOTICE: Remaining 174 of 500 cycles 
+2014-03-25 07:08:51 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-25 07:08:53 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 0 
+2014-03-25 07:08:53 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'Gamma05NoPhiS270_job_73190609' 
+2014-03-25 07:08:53 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request Gamma05NoPhiS270_job_73190609 is 900 
+2014-03-25 07:08:53 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 0 
+2014-03-25 07:08:53 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'Gamma1PhiS379_job_73190770' 
+2014-03-25 07:08:53 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request Gamma1PhiS379_job_73190770 is 900 
+
+stuck, after restart:
+
+2014-03-25 09:34:51 UTC RequestManagement/RequestExecutingAgent NOTICE: Starting cycle for module RequestManagement/RequestExecutingAgent 
+2014-03-25 09:34:51 UTC RequestManagement/RequestExecutingAgent NOTICE: Remaining 500 of 500 cycles 
+2014-03-25 09:34:51 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-25 09:34:51 UTC RequestManagement/RequestExecutingAgent   INFO: ProcessPool: minProcess = 1 maxProcess = 8 queueSize = 25 
+2014-03-25 09:34:51 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 0 
+2014-03-25 09:34:51 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'Gamma1NoPhiS235_job_73190919' 
+2014-03-25 09:34:51 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request Gamma1NoPhiS235_job_73190919 is 900 
+2014-03-25 09:34:52 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 0 working = 1 
+2014-03-25 09:34:52 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'Gamma1PhiS231_job_73190817' 
+2014-03-25 09:34:52 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request Gamma1PhiS231_job_73190817 is 900 
+2014-03-25 09:34:53 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 1 
+
+-------------
+dirac    25557  2.1  1.2 592124 48748 ?        SNl  Mar24  17:53      \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Reques
+dirac    27255  0.0  1.1 592124 45484 ?        SNl  04:14   0:00          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Re
+root     28213  0.0  0.0  11120   392 ?        S<s   2013   0:23 /sbin/udevd -d
+
+
+
+
