@@ -34,21 +34,64 @@ proc __prListLock =
 	r__prListLock_release.
 __prListLock;
 
+%%%%%%% ========== RequestExecutingAgent 
+
+act s_getRequestsPerCycle, r_getRequestsPerCycle, getRequestsPerCycle:Nat;
+act s_getMinProcess, r_getMinProcess, getMinProcess:Nat;
+act s_getMaxProcess, r_getMaxProcess, getMaxProcess:Nat;
+act s_getQueueSize, r_getQueueSize, getQueueSize:Nat;
+act s_getRequest, r_getRequest, getRequest:Task;
+
+act blah,RequestExecutingAgent_return;
+
+proc RequestExecutingAgent_mem(__requestsPerCycle:Nat, minProcess:Nat, maxProcess:Nat, queueSize:Nat) = 
+      r_getRequestsPerCycle(__requestsPerCycle).
+     RequestExecutingAgent_mem(__requestsPerCycle, minProcess, maxProcess, queueSize) 
+      + 
+     r_getMaxProcess(maxProcess).
+     RequestExecutingAgent_mem(__requestsPerCycle, minProcess, maxProcess, queueSize) 
+      +
+     r_getMinProcess(minProcess).
+     RequestExecutingAgent_mem(__requestsPerCycle, minProcess, maxProcess, queueSize) 
+      +
+     r_getQueueSize(queueSize).
+ RequestExecutingAgent_mem(__requestsPerCycle, minProcess, maxProcess, queueSize) 
+;
+
+
+proc RequestExecutingAgent = CreateProcessPool.RequestExecutingAgent_execute(0);
+
+
+proc RequestExecutingAgent_execute(taskCounter:Nat) =
+    sum requestsPerCycle:Nat.s_getRequestsPerCycle(requestsPerCycle).
+      (taskCounter<requestsPerCycle) -> (
+	 sum newTask:Task.s_getRequest(newTask)
+	.RequestExecutingAgent_execute(taskCounter+1)
+	) <> RequestExecutingAgent_return;
+    
+
+%% creates tasks....
+proc RequestClient = 
+    r_getRequest(task(1,true,10, LogUpload)).RequestClient;
+
+%%%%%%% ========== END RequestExecutingAgent 
+
+    
 %%% ProcessPool memory
-proc ProcessPool_mem(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat,__pendingQueue:List(Task), __resultsQueue:List(Task), __stopEvent:Bool, __workersDict:List(Worker), __draining:Bool) = 
+proc ProcessPool_mem(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool) = 
         r_getMaxSize(__maxSize).
-	  ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+	  ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __workersDict, __draining)
         +
         r_getMinSize(__minSize).
-        ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+        ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __workersDict, __draining)
 	+
 	%r_getNumWorkingProcesses(getWorkingProcesses(__workersDict)). %% TODO: implement map getWorkingPocesses
-	r_getNumWorkingProcesses(0). 
-	ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+	r_getNumWorkingProcesses(0). % TODO: Change
+	ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __workersDict, __draining)
 	+
 	%r_getNumIdleProcesses(getIdleProcesses(__workersDict). %% TODO: implement map getIdlePocesses
 	r_getNumIdleProcesses(1).
-	ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __pendingQueue, __resultsQueue, __stopEvent, __workersDict, __draining)
+	ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __workersDict, __draining)
 ;
 
 proc ProcessPool = Proc_getNumWorkingProcesses.Proc_getNumIdleProcesses.ProcessPool;
@@ -75,45 +118,55 @@ act r_runProcessThread, s_runProcessThread, runProcessThread:Nat#Nat;
 act r_setTask, s_setTask, setTask:Task;
 act processTask, runWorkingProcess, createProcessThread, return;
 act r_increaseTaskCounter, s_increaseTaskCounter, increaseTaskCounter;
-act r_getWPStopEvent, s_getWPStopEvent, getWPStopEvent:Bool;
+act r_getStopEvent, s_getStopEvent, getStopEvent:Bool;
 act r_clearTask, s_clearTask, clearTask;
 act r_joinProcessThread, s_joinProcessThread, joinProcessThread;
 act r___pendingQueueGet, s___pendingQueueGet, __pendingQueueGet:Task;
 act r___resultsQueuePut, s___resultsQueuePut, __resultsQueuePut:Task;
 act r___pendingQueueSize, s___pendingQueueSize, __pendingQueueSize:Nat;
+act r_setStopEvent, s_setStopEvent, setStopEvent:Bool;
+
+%%% ============= START Memory for queueues, these are shared between the ProcessPool and the Workers, this is how they communicate
+
+proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool) =   
+   r___pendingQueueGet(head(__pendingQueue)).
+    Queues_mem(tail(__pendingQueue), __resultsQueue, __stopEvent)
+   + 
+   sum newTask:Task.r___resultsQueuePut(newTask).
+    Queues_mem(__pendingQueue, __resultsQueue<|newTask, __stopEvent) 
+      +
+    r___pendingQueueSize(#__pendingQueue).
+    Queues_mem(__pendingQueue, __resultsQueue, __stopEvent) 
+      +
+     r_getStopEvent(__stopEvent).
+    Queues_mem(__pendingQueue, __resultsQueue, __stopEvent)
+      +
+    sum newStopEvent:Bool.r_setStopEvent(newStopEvent).
+    Queues_mem(__pendingQueue, __resultsQueue, newStopEvent)
+
+;
+
+%%% ============= END Memory for queueues
+
 %%% WorkingProcess Memory
-proc WorkingProcess_mem(wpid:Nat, __working:Bool,__taskCounter:Nat,__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool,__watchdogThread:Nat, __processThread:Nat,task:Task) = 
+proc WorkingProcess_mem(wpid:Nat, __working:Bool,__taskCounter:Nat,__watchdogThread:Nat, __processThread:Nat,task:Task) = 
       r_isWorking(__working).
-      WorkingProcess_mem(wpid, __working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
+      WorkingProcess_mem(wpid, __working, __taskCounter, __watchdogThread, __processThread, task)
     +
       r_taskProcessed(__taskCounter).
-      WorkingProcess_mem(wpid, __working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
+      WorkingProcess_mem(wpid, __working, __taskCounter, __watchdogThread, __processThread, task)
     +
       sum working:Bool.r_set__working(working). 
-       WorkingProcess_mem(wpid, working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
+       WorkingProcess_mem(wpid, working, __taskCounter, __watchdogThread, __processThread, task)
     +
       sum newTask:Task.r_setTask(newTask).
-     WorkingProcess_mem(wpid, __working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, newTask)
+     WorkingProcess_mem(wpid, __working, __taskCounter, __watchdogThread, __processThread, newTask)
     +
       r_increaseTaskCounter.
-     WorkingProcess_mem(wpid, __working, (__taskCounter+1), __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
-    +
-     r_getWPStopEvent(__stopEvent).
-    WorkingProcess_mem(wpid, __working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
+     WorkingProcess_mem(wpid, __working, (__taskCounter+1), __watchdogThread, __processThread, task)
     + 
      r_clearTask.
-    WorkingProcess_mem(wpid, __working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, None)
-    + 
-    r___pendingQueueGet(head(__pendingQueue)).
-    WorkingProcess_mem(wpid, __working, __taskCounter, tail(__pendingQueue), __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
-    +
-    sum newTask:Task.r___resultsQueuePut(newTask).
-    WorkingProcess_mem(wpid, __working, __taskCounter, __pendingQueue, __resultsQueue<|newTask, __stopEvent, __watchdogThread, __processThread, task)
-    +
-    r___pendingQueueSize(#__pendingQueue).
-    WorkingProcess_mem(wpid, __working, __taskCounter, __pendingQueue, __resultsQueue, __stopEvent, __watchdogThread, __processThread, task)
-
-    
+    WorkingProcess_mem(wpid, __working, __taskCounter, __watchdogThread, __processThread, None)
 ;
 
 proc WatchdogThread(wpid:Nat, wdtid:Nat) = doSomethingWatchdog.WatchdogThread(wpid,wdtid);  %% TODO: change if os.getppid() == 1:
@@ -128,11 +181,11 @@ proc WorkingProcess_start(wpid:Nat) = runWorkingProcess.WatchdogThread(wpid, 1) 
 				;
 
 proc WorkingProcess_while(wpid:Nat) = 
-			sum stopEvent:Bool.s_getWPStopEvent(stopEvent).sum pqSize:Nat.s___pendingQueueSize(pqSize).
+			sum stopEvent:Bool.s_getStopEvent(stopEvent).sum pqSize:Nat.s___pendingQueueSize(pqSize).
 				(!stopEvent && pqSize>0) -> (
 					  s_clearTask.
 					  s_set__working(true).
-					  sum task:Task.s___pendingQueueGet(task). %% TODO: treba task = self.__pendingQueue.get( block = True, timeout = 10 )   
+					  sum task:Task.s___pendingQueueGet(task). 
 					  s_setTask(task). 
 					  ProcessThread(wpid,1).			    
 					  joinProcessThread.
@@ -141,7 +194,7 @@ proc WorkingProcess_while(wpid:Nat) =
 					  s_increaseTaskCounter.
 					  s_set__working(false)
 				). WorkingProcess_while(wpid)
-				<> return % TODO: else it should just return
+				<> return 
 				;
 				    
 %% ============ END WorkingProcess
@@ -158,12 +211,18 @@ init block(  { r_getMaxSize, s_getMaxSize, r_getMinSize, s_getMinSize,
 	  r_setTask, s_setTask,
 	  r_increaseTaskCounter, s_increaseTaskCounter,
 	  r_runProcessThread, s_runProcessThread,
-	  r_getWPStopEvent, s_getWPStopEvent,
+	  r_getStopEvent, s_getStopEvent,
 	  r_clearTask, s_clearTask,
 	  r_joinProcessThread, s_joinProcessThread,
 	  r___pendingQueueGet, s___pendingQueueGet,
 	  r___resultsQueuePut, s___resultsQueuePut,
-	  r___pendingQueueSize, s___pendingQueueSize
+	  r___pendingQueueSize, s___pendingQueueSize,
+	  r_setStopEvent, s_setStopEvent,
+	  s_getRequestsPerCycle, r_getRequestsPerCycle,
+	  s_getMinProcess, r_getMinProcess,
+	  s_getMaxProcess, r_getMaxProcess,
+	  s_getQueueSize, r_getQueueSize,
+	  s_getRequest, r_getRequest
 	  },
        comm( { r_getMaxSize|s_getMaxSize->getMaxSize,
         r_getMinSize | s_getMinSize -> getMinSize,
@@ -178,17 +237,29 @@ init block(  { r_getMaxSize, s_getMaxSize, r_getMinSize, s_getMinSize,
 	r_setTask | s_setTask -> setTask,
 	r_increaseTaskCounter | s_increaseTaskCounter -> increaseTaskCounter,
 	r_runProcessThread | s_runProcessThread -> runProcessThread,
-	r_getWPStopEvent | s_getWPStopEvent -> getWPStopEvent,
+	r_getStopEvent | s_getStopEvent -> getStopEvent,
 	r_clearTask | s_clearTask -> clearTask,
 	r_joinProcessThread | s_joinProcessThread -> joinProcessThread,
 	r___pendingQueueGet | s___pendingQueueGet -> __pendingQueueGet,
 	r___resultsQueuePut |  s___resultsQueuePut -> __resultsQueuePut,
-	r___pendingQueueSize | s___pendingQueueSize -> __pendingQueueSize
+	r___pendingQueueSize | s___pendingQueueSize -> __pendingQueueSize,
+	r_setStopEvent | s_setStopEvent -> setStopEvent,
+	s_getRequestsPerCycle | r_getRequestsPerCycle -> getRequestsPerCycle,
+	s_getMinProcess | r_getMinProcess -> getMinProcess,
+	s_getMaxProcess | r_getMaxProcess -> getMaxProcess,
+	s_getQueueSize | r_getQueueSize -> getQueueSize,
+	s_getRequest | r_getRequest -> getRequest
 
        },
-        ProcessPool_mem(1,8,10,[],[],false,[],false) || __prListLock ||
+       %% === Agent stuff
+       RequestExecutingAgent_mem(10,1,8,10) || RequestExecutingAgent || RequestClient ||
+       
+       %% ==== ProcessPool stuff
+%         ProcessPool_mem(1,8,10,[],false) || __prListLock || 
+        Queues_mem([task(1,true,10, RegisterFile),task(2,true,10, RemoveFile)],[],false)  || 
         % ProcessPool || %% TODO: Enable again
-        WorkingProcess_mem(1,false,0,[task(1,true,10, RegisterFile),task(2,true,10, RemoveFile)],[],false,1,1,None) || WorkingProcess(1) %% this should be started by the ProcessPool
+        %% === WorkingProcess stuff
+        WorkingProcess_mem(1,false,0,1,1,None) || WorkingProcess(1)
      ));
      
      
