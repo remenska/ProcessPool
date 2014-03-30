@@ -1,0 +1,13 @@
+12447 select(0, NULL, NULL, NULL, {1, 312428} <unfinished ...>
+12446 futex(0x1d6d4f0, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+12447 <... select resumed> )            = 0 (Timeout)
+12447 getppid()                         = 26871
+12447 select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+12447 getppid()                         = 26871
+12447 select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+12447 getppid()                         = 26871
+12447 select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+12447 getppid()                         = 26871
+12447 select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+12447 getppid()                         = 26871
+12447 select(0, NULL, NULL, NULL, {5, 0} <unfinished ...>

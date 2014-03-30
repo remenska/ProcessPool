@@ -33,7 +33,7 @@ dirac    12446  0.0  1.1 528880 47268 ?        SNl  06:57   0:02          \_ pyt
 2014-03-30 07:19:00 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 0 
 2014-03-30 07:19:00 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'LDSB.DcDpSg_removal_request.xml' 
 2014-03-30 07:19:00 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request LDSB.DcDpSg_removal_request.xml is 420 
-2014-03-30 07:19:01 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 0 
+2014-03-30 07:19:01 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 0  <---!!! I THINK THIS IS THE CRUCIAL THING!!
 2014-03-30 07:19:01 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'LDSB.5IllUS_removal_request.xml' 
 2014-03-30 07:19:01 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request LDSB.5IllUS_removal_request.xml is 420 
 
@@ -221,4 +221,523 @@ Process 12446 attached with 2 threads - interrupt to quit
 [pid 12447] getppid()                   = 26871
 [pid 12447] select(0, NULL, NULL, NULL, {5, 0}
 
+
+
+[dirac@lbvobox02 pro]$ strace -f -p 26871
+Process 26871 attached with 4 threads - interrupt to quit
+[pid 26917] select(0, NULL, NULL, NULL, {0, 778102} <unfinished ...>
+[pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+[pid 26997] futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+[pid 26917] <... select resumed> )      = 0 (Timeout)
+[pid 26917] gettimeofday({1396214221, 248772}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214222, 252581}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214223, 257791}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214224, 270167}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214225, 282656}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214226, 287968}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214227, 291364}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214228, 298621}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}^C <unfinished ...>
+Process 26871 detached
+Process 26917 detached
+Process 26997 detached
+Process 26999 detached
+
+-----------
+[dirac@lbvobox02 pro]$ strace -f -p 26917
+Process 26917 attached with 4 threads - interrupt to quit
+[pid 26997] futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 26917] select(0, NULL, NULL, NULL, {0, 172617} <unfinished ...>
+[pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+[pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+[pid 26917] <... select resumed> )      = 0 (Timeout)
+[pid 26917] gettimeofday({1396214365, 480486}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214366, 487199}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214367, 499273}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214368, 525468}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214369, 534829}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214370, 539813}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214371, 541350}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214372, 545925}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214373, 562731}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214374, 567642}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214375, 570772}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214376, 577997}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214377, 603810}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214378, 705403}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214379, 711245}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214380, 715353}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {0, 865659}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214381, 585609}, NULL) = 0
+[pid 26917] gettimeofday({1396214381, 585693}, NULL) = 0
+[pid 26917] gettimeofday({1396214381, 585773}, NULL) = 0
+[pid 26917] gettimeofday({1396214381, 585894}, NULL) = 0
+[pid 26917] gettimeofday({1396214381, 585992}, NULL) = 0
+[pid 26917] stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+[pid 26917] gettimeofday({1396214381, 586405}, NULL) = 0
+[pid 26917] stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+[pid 26917] gettimeofday({1396214381, 586596}, NULL) = 0
+[pid 26917] stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+[pid 26917] gettimeofday({1396214381, 586764}, NULL) = 0
+[pid 26917] stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+[pid 26917] gettimeofday({1396214381, 586927}, NULL) = 0
+[pid 26917] stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+[pid 26917] gettimeofday({1396214381, 587227}, NULL) = 0
+[pid 26917] gettimeofday({1396214381, 587392}, NULL) = 0
+[pid 26917] clone(Process 5380 attached
+child_stack=0x7ff30a341ff0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7ff30a3429d0, tls=0x7ff30a342700, child_tidptr=0x7ff30a3429d0) = 5380
+[pid 26917] futex(0x7ff30c0046f0, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid  5380] set_robust_list(0x7ff30a3429e0, 0x18) = 0
+[pid  5380] futex(0x7ff30c0046f0, FUTEX_WAKE_PRIVATE, 1) = 1
+[pid 26917] <... futex resumed> )       = 0
+[pid 26917] futex(0x1d04a20, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid  5380] futex(0x1d04a20, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
+[pid 26917] <... futex resumed> )       = -1 EAGAIN (Resource temporarily unavailable)
+[pid 26917] gettimeofday( <unfinished ...>
+[pid  5380] <... futex resumed> )       = 0
+[pid  5380] futex(0x1d04a20, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 26917] <... gettimeofday resumed> {1396214381, 589792}, NULL) = 0
+[pid 26917] futex(0x1d04a20, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
+[pid  5380] <... futex resumed> )       = 0
+[pid 26917] <... futex resumed> )       = 1
+[pid  5380] gettimeofday({1396214381, 589939}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 590005}, NULL) = 0
+[pid  5380] gettimeofday( <unfinished ...>
+[pid 26917] futex(0x1d04a20, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid  5380] <... gettimeofday resumed> {1396214381, 590608}, NULL) = 0
+[pid  5380] futex(0x1d04a20, FUTEX_WAKE_PRIVATE, 1) = 1
+[pid 26917] <... futex resumed> )       = 0
+[pid 26917] gettimeofday({1396214381, 590754}, NULL) = 0
+[pid 26917] gettimeofday({1396214381, 590834}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0} <unfinished ...>
+[pid  5380] gettimeofday({1396214381, 591016}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 591355}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 591740}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 592041}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 592213}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 592391}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 592754}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 592936}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 593101}, NULL) = 0
+[pid  5380] stat("/opt/dirac/versions/v7r15p15_1395670712/etc/grid-security/certificates", {st_mode=S_IFDIR|0755, st_size=53248, ...}) = 0
+[pid  5380] open("/opt/dirac/etc/grid-security/hostcert.pem", O_RDONLY) = 7
+[pid  5380] fstat(7, {st_mode=S_IFREG|0644, st_size=2707, ...}) = 0
+[pid  5380] fstat(7, {st_mode=S_IFREG|0644, st_size=2707, ...}) = 0
+[pid  5380] lseek(7, 0, SEEK_CUR)       = 0
+[pid  5380] fstat(7, {st_mode=S_IFREG|0644, st_size=2707, ...}) = 0
+[pid  5380] mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7ff31abfc000
+[pid  5380] lseek(7, 0, SEEK_CUR)       = 0
+[pid  5380] read(7, "-----BEGIN CERTIFICATE-----\nMIIH"..., 4096) = 2707
+[pid  5380] read(7, "", 4096)           = 0
+[pid  5380] close(7)                    = 0
+[pid  5380] munmap(0x7ff31abfc000, 4096) = 0
+[pid  5380] gettimeofday({1396214381, 595239}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 595556}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 595878}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 596903}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 597098}, NULL) = 0
+..
+[pid  5380] gettimeofday({1396214381, 866928}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 867162}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 867375}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 867564}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 867735}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 867904}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 868174}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 868427}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 868614}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 868818}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 869031}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 869404}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 869596}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 869761}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 869921}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 870088}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 870259}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 870545}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 870660}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 870767}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 870873}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 870979}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 871112}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 871222}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 871378}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 871626}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 871743}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 871850}, NULL) = 0
+..
+[pid  5380] gettimeofday({1396214381, 885832}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 886003}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 886194}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 886377}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 886492}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 886607}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 886746}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 886855}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 886961}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 887169}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 887453}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 887734}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 887919}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 888167}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 888357}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 888620}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 889544}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 889727}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 889903}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 890221}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 890411}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 890600}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 890794}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 890980}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 891363}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 891555}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 891736}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 891930}, NULL) = 0
+..
+[pid  5380] gettimeofday({1396214381, 900776}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 900958}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 901252}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 901449}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 901608}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 901782}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 901967}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 902272}, NULL) = 0
+..
+[pid  5380] gettimeofday({1396214381, 909131}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 909315}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 909480}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 909639}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 909804}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 909960}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 910212}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 910391}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 910553}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 910709}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 910864}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 911020}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 911283}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 911446}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 911607}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 911764}, NULL) = 0
+...
+[pid  5380] gettimeofday({1396214381, 920097}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 920271}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 920425}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 920579}, NULL) = 0
+..
+[pid  5380] gettimeofday({1396214381, 924543}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 924689}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 924832}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 924976}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 925203}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 925367}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 925517}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 925663}, NULL) = 0
+..
+[pid  5380] gettimeofday({1396214381, 933013}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 933254}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 933403}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 933604}, NULL) = 0
+[pid  5380] open("/opt/dirac/etc/grid-security/hostcert.pem", O_RDONLY) = 7
+[pid  5380] fstat(7, {st_mode=S_IFREG|0644, st_size=2707, ...}) = 0
+[pid  5380] mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7ff31abfc000
+[pid  5380] read(7, "-----BEGIN CERTIFICATE-----\nMIIH"..., 4096) = 2707
+[pid  5380] read(7, "", 4096)           = 0
+[pid  5380] close(7)                    = 0
+[pid  5380] munmap(0x7ff31abfc000, 4096) = 0
+[pid  5380] open("/opt/dirac/etc/grid-security/hostkey.pem", O_RDONLY) = 7
+[pid  5380] fstat(7, {st_mode=S_IFREG|0600, st_size=3243, ...}) = 0
+[pid  5380] mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7ff31abfc000
+[pid  5380] read(7, "-----BEGIN RSA PRIVATE KEY-----\n"..., 4096) = 3243
+[pid  5380] close(7)                    = 0
+[pid  5380] munmap(0x7ff31abfc000, 4096) = 0
+[pid  5380] socket(PF_NETLINK, SOCK_RAW, 0) = 7
+[pid  5380] bind(7, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+[pid  5380] getsockname(7, {sa_family=AF_NETLINK, pid=26871, groups=00000000}, [12]) = 0
+[pid  5380] gettimeofday({1396214381, 935787}, NULL) = 0
+[pid  5380] sendto(7, "\24\0\0\0\26\0\1\3m\2128S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+[pid  5380] recvmsg(7, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0m\2128S\367h\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 108
+[pid  5380] recvmsg(7, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0m\2128S\367h\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+[pid  5380] recvmsg(7, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0m\2128S\367h\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+[pid  5380] close(7)                    = 0
+[pid  5380] socket(PF_INET, SOCK_STREAM, IPPROTO_IP) = 7
+[pid  5380] fcntl(7, F_GETFL)           = 0x2 (flags O_RDWR)
+[pid  5380] fcntl(7, F_SETFL, O_RDWR|O_NONBLOCK) = 0
+[pid  5380] connect(7, {sa_family=AF_INET, sin_port=htons(9135), sin_addr=inet_addr("128.142.241.47")}, 16) = -1 EINPROGRESS (Operation now in progress)
+[pid  5380] poll([{fd=7, events=POLLOUT}], 1, 5000) = 1 ([{fd=7, revents=POLLOUT}])
+[pid  5380] getsockopt(7, SOL_SOCKET, SO_ERROR, [0], [4]) = 0
+[pid  5380] fcntl(7, F_GETFL)           = 0x802 (flags O_RDWR|O_NONBLOCK)
+[pid  5380] fcntl(7, F_SETFL, O_RDWR|O_NONBLOCK) = 0
+[pid  5380] gettimeofday({1396214381, 954694}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 954733}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 954774}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 954842}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 954879}, NULL) = 0
+[pid  5380] write(7, "\26\3\1\0\315\1\0\0\311\3\1S8\212m.\273{\275\22\364p\340\0007\0B\5\256\316Mc"..., 210) = 210
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214381, 956380}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 956429}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214381, 957753}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 957805}, NULL) = 0
+[pid  5380] read(7, "\26\3\1\0005", 5)  = 5
+[pid  5380] read(7, "\2\0\0001\3\1S8\212m\221Wdf\350\235g3\204&\361\3217\260\273\27\303\311g\7\335h"..., 53) = 53
+[pid  5380] read(7, "\26\3\1\20\243", 5) = 5
+[pid  5380] read(7, "\v\0\20\237\0\20\234\0\6\2460\202\6\2420\202\5\212\240\3\2\1\2\2\n|\300\31\307\0\2\0"..., 4259) = 2833
+[pid  5380] read(7, 0x7ff300c9d859, 1426) = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214381, 959359}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 959426}, NULL) = 0
+[pid  5380] read(7, "RN%20Root%20CA.crt0\201\253\6\10+\6\1\5\5\0070\2\206"..., 1426) = 1426
+[pid  5380] gettimeofday({1396214381, 960224}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 960277}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 960465}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 960494}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 960722}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 960770}, NULL) = 0
+[pid  5380] read(7, "\26\3\1\0\16", 5)  = 5
+[pid  5380] read(7, "\r\0\0\6\3\1\2@\0\0\16\0\0\0", 14) = 14
+[pid  5380] gettimeofday({1396214381, 961140}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 961238}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 961299}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 961422}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 961692}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 961738}, NULL) = 0
+[pid  5380] write(7, "\26\3\1\21\244\v\0\21\240\0\21\235\0\7\2470\202\7\2430\202\6\213\240\3\2\1\2\2\n*\\"..., 4521) = 4521
+[pid  5380] gettimeofday({1396214381, 962340}, NULL) = 0
+[pid  5380] write(7, "\26\3\1\1\6\20\0\1\2\1\0\36\203\351U\22:\10\335\326\322fW\275F\270\337{_\350\343\257"..., 849) = 849
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214381, 999949}, NULL) = 0
+[pid  5380] gettimeofday({1396214381, 999985}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214382, 1344}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 1400}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214382, 2680}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 2732}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214382, 4005}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 4118}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214382, 5367}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 5444}, NULL) = 0
+[pid  5380] read(7, "\26\3\1\10j", 5)   = 5
+[pid  5380] read(7, "\4\0\10f\0\0\0\0\10`\314s\367\t\35\231h\3003nMr\327\340v\5O\221\307\6\254\222"..., 2154) = 2154
+[pid  5380] read(7, "\24\3\1\0\1", 5)   = 5
+[pid  5380] read(7, "\1", 1)            = 1
+[pid  5380] read(7, "\26\3\1\0000", 5)  = 5
+[pid  5380] read(7, ":]Fq\274\24!\2y\376\357b6).\36Zf\177\211O\254Po\217\311;\25\276\315\232\371"..., 48) = 48
+[pid  5380] gettimeofday({1396214382, 6255}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 6383}, NULL) = 0
+[pid  5380] getpeername(7, {sa_family=AF_INET, sin_port=htons(9135), sin_addr=inet_addr("128.142.241.47")}, [16]) = 0
+[pid  5380] getsockname(7, {sa_family=AF_INET, sin_port=htons(57026), sin_addr=inet_addr("128.142.153.142")}, [16]) = 0
+[pid  5380] gettimeofday({1396214382, 6572}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 6646}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 6734}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 6763}, NULL) = 0
+[pid  5380] write(7, "\27\3\1\0\220\243c\341K\315\366\\\330\1\326\360D\255\353\244\32Th\7\22I\203\270\1\265\254\371"..., 149) = 149
+[pid  5380] gettimeofday({1396214382, 6911}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 6978}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 7007}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214382, 8454}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214382, 9738}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214382, 11016}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214382, 12394}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214382, 13656}, NULL) = 0
+[pid  5380] read(7, "\27\3\1\0000", 5)  = 5
+[pid  5380] read(7, "\361\306n\302^$\300\363\364\305A\371t\253\262z\236\351\344\2547\251#F\6\244\343\204\365\354N\205"..., 48) = 48
+[pid  5380] gettimeofday({1396214382, 13848}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 13930}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 13959}, NULL) = 0
+[pid  5380] write(7, "\27\3\1\0P\362\27J\347\366\22\305\274\277\261\262\367\302\223\27j\230\366\202\226\253SpZ\272Z\24"..., 85) = 85
+[pid  5380] gettimeofday({1396214382, 14256}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 14309}, NULL) = 0
+[pid  5380] gettimeofday({1396214382, 14359}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214382, 15618}, NULL) = 0
+[pid  5380] read(7, 0x7ff300c9cd43, 5)  = -1 EAGAIN (Resource temporarily unavailable)
+[pid  5380] select(0, NULL, NULL, NULL, {0, 1000}) = 0 (Timeout)
+[pid  5380] gettimeofday({1396214382, 16833}, NULL) = 0
+[pid  5380] read(7, "\27\3\1\0`", 5)    = 5
+[pid  5380] read(7, "\373m\364\236A\335\243\230\335nF\24\367\272\353\266\231\262o\366\7#\0lEI\270\301R\255|\323"..., 96) = 96
+[pid  5380] gettimeofday({1396214382, 17019}, NULL) = 0
+[pid  5380] fsync(7)                    = -1 EINVAL (Invalid argument)
+[pid  5380] close(7)                    = 0
+[pid  5380] madvise(0x7ff309942000, 10465280, MADV_DONTNEED) = 0
+[pid  5380] _exit(0)                    = ?
+Process 5380 detached
+[pid 26917] <... select resumed> )      = 0 (Timeout)
+[pid 26917] gettimeofday({1396214382, 597061}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214383, 600215}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214384, 609561}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214385, 618583}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214386, 639171}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214387, 652218}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {0, 470018}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214388, 124754}, NULL) = 0
+[pid 26917] gettimeofday({1396214388, 124835}, NULL) = 0
+[pid 26917] gettimeofday({1396214388, 124883}, NULL) = 0
+[pid 26917] gettimeofday({1396214388, 124930}, NULL) = 0
+[pid 26917] gettimeofday({1396214388, 124988}, NULL) = 0
+[pid 26917] gettimeofday({1396214388, 125056}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214389, 134466}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214390, 155248}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214391, 166208}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214392, 179030}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214393, 204114}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214394, 209185}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214395, 278653}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214396, 285451}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214397, 290261}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214398, 295323}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214399, 323026}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214400, 339865}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214401, 346415}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214402, 355258}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214403, 379287}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214404, 384886}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214405, 418183}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214406, 419868}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214407, 437436}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214408, 456776}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214409, 474279}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214410, 479187}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214411, 486471}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214412, 492553}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214413, 509358}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}^C <unfinished ...>
+Process 26917 detached
+Process 26871 detached
+Process 26997 detached
+Process 26999 detached
+[dirac@lbvobox02 pro]$ strace -f -p 26917 > 26917.out
+Process 26917 attached with 4 threads - interrupt to quit
+[pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+[pid 26997] futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 26917] select(0, NULL, NULL, NULL, {0, 34259} <unfinished ...>
+[pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+[pid 26917] <... select resumed> )      = 0 (Timeout)
+[pid 26917] gettimeofday({1396214420, 552888}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396214421, 562301}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}^C <unfinished ...>
+Process 26917 detached
+Process 26871 detached
+Process 26997 detached
+Process 26999 detached
+
+
+......
+
+dirac    12446 26871 12446  0    2 132220 47268  0 06:57 ?        00:00:00 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    12446 26871 12447  0    2 132220 47268  1 06:57 ?        00:00:02 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+
+
+[dirac@lbvobox02 log]$ ps -eLF | grep RequestExe
+dirac     8316 11220  8316  0    1   985   336   0 Mar17 ?        00:00:00 runsv RequestManagement_RequestExecutingAgent
+dirac    10179 24682 10179  0    1 25796   856   0 23:28 pts/1    00:00:00 grep RequestExe
+dirac    12446 26871 12446  0    2 132220 47268  0 06:57 ?        00:00:00 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_RequestExecutingAgent.cfg
+dirac    12446 26871 12447  0    2 132220 47268  1 06:57 ?        00:00:02 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_RequestExecutingAgent.cfg
+dirac    26871  8316 26871  0    4 151456 64424  0 06:24 ?        00:03:23 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_RequestExecutingAgent.cfg
+dirac    26871  8316 26917  0    4 151456 64424  0 06:24 ?        00:00:20 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_RequestExecutingAgent.cfg
+dirac    26871  8316 26997  0    4 151456 64424  0 06:24 ?        00:00:04 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_RequestExecutingAgent.cfg
+dirac    26871  8316 26999  0    4 151456 64424  0 06:24 ?        00:00:02 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+
+
+dirac    26871  8316 26871  0    4 151456 64424  0 06:24 ?        00:03:23 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    26871  8316 26917  0    4 151456 64424  0 06:24 ?        00:00:20 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    26871  8316 26997  0    4 151456 64424  0 06:24 ?        00:00:04 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    26871  8316 26999  0    4 151456 64424  0 06:24 ?        00:00:02 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+but also!!!
+dirac    12446 26871 12446  0    2 132220 47268  0 06:57 ?        00:00:00 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    12446 26871 12447  0    2 132220 47268  1 06:57 ?        00:00:02 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+
+---------
+ps auxf
+dirac     8316  0.0  0.0   3940   336 ?        S    Mar17   0:00  \_ runsv RequestManagement_RequestExecutingAgent
+dirac     8318  0.0  0.0   4084   416 ?        S    Mar17   2:06      \_ svlogd .
+dirac    26871  0.4  1.5 605824 64424 ?        SNl  06:24   4:26      \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Reques
+dirac    12446  0.0  1.1 528880 47268 ?        SNl  06:57   0:02          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Re
+
+--------------
+
+dirac    12446 26871 12446  0    2 132220 47268  0 06:57 ?        00:00:00 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    12446 26871 12447  0    2 132220 47268  1 06:57 ?        00:00:02 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+
+dirac    26871  8316 26871  0    4 151456 64424  0 06:24 ?        00:03:23 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    26871  8316 26917  0    4 151456 64424  0 06:24 ?        00:00:21 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    26871  8316 26997  0    4 151456 64424  0 06:24 ?        00:00:04 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    26871  8316 26999  0    4 151456 64424  0 06:24 ?        00:00:02 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
 

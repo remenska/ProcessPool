@@ -1,0 +1,79 @@
+26999 write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+26997 futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+26917 select(0, NULL, NULL, NULL, {0, 686625} <unfinished ...>
+26871 futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+26917 <... select resumed> )            = 0 (Timeout)
+26917 gettimeofday({1396215277, 927565}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215278, 937217}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215279, 940778}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215280, 952737}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {0, 653464}) = 0 (Timeout)
+26917 gettimeofday({1396215281, 606588}, NULL) = 0
+26917 gettimeofday({1396215281, 606688}, NULL) = 0
+26917 gettimeofday({1396215281, 606781}, NULL) = 0
+26917 gettimeofday({1396215281, 606919}, NULL) = 0
+26917 gettimeofday({1396215281, 607055}, NULL) = 0
+26917 stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+26917 gettimeofday({1396215281, 607325}, NULL) = 0
+26917 stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+26917 gettimeofday({1396215281, 607596}, NULL) = 0
+26917 stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+26917 gettimeofday({1396215281, 607864}, NULL) = 0
+26917 stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+26917 gettimeofday({1396215281, 608085}, NULL) = 0
+26917 stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+26917 gettimeofday({1396215281, 608312}, NULL) = 0
+26917 gettimeofday({1396215281, 608491}, NULL) = 0
+26917 clone(child_stack=0x7ff30a341ff0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7ff30a3429d0, tls=0x7ff30a342700, child_tidptr=0x7ff30a3429d0) = 14277
+26917 futex(0x7ff30c0046f0, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+26917 gettimeofday({1396215281, 611363}, NULL) = 0
+26917 futex(0x1d04a20, FUTEX_WAKE_PRIVATE, 1) = 1
+26917 futex(0x1d04a20, FUTEX_WAKE_PRIVATE, 1) = 0
+26917 gettimeofday({1396215281, 626656}, NULL) = 0
+26917 futex(0x1d04a20, FUTEX_WAKE_PRIVATE, 1) = 1
+26917 futex(0x1d04a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+26917 gettimeofday({1396215281, 650622}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 futex(0x1d04a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+26917 futex(0x1d04a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+26917 futex(0x1d04a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+26917 futex(0x1d04a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+26917 futex(0x1d04a20, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+26917 gettimeofday({1396215282, 963297}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215283, 968912}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215284, 987621}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215285, 989442}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215287, 6201}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215288, 8466}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {0, 202081}) = 0 (Timeout)
+26917 gettimeofday({1396215288, 220459}, NULL) = 0
+26917 gettimeofday({1396215288, 220591}, NULL) = 0
+26917 gettimeofday({1396215288, 220645}, NULL) = 0
+26917 gettimeofday({1396215288, 220695}, NULL) = 0
+26917 gettimeofday({1396215288, 231331}, NULL) = 0
+26917 gettimeofday({1396215288, 231529}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215289, 245383}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215290, 254834}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215291, 262062}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215292, 298206}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215293, 353616}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215294, 361610}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215295, 367764}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+26917 gettimeofday({1396215296, 374136}, NULL) = 0
+26917 select(0, NULL, NULL, NULL, {1, 0} <unfinished ...>
