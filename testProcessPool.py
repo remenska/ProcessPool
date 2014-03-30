@@ -10,7 +10,7 @@ class RequestTask:
     print "Create %s"%id
 
   def __call__(self):
-    sleepTime = random.randint(0,3)
+    sleepTime = random.randint(0,20)
     print "Req %s sleep %s"%(self.__id, sleepTime)
     time.sleep(sleepTime)
     print "Req %s finished"%self.__id
@@ -42,35 +42,40 @@ def processPool(  ):
   return __processPool
 
 
-print "processPool tasks idle = %s working = %s" % ( processPool().getNumIdleProcesses(), processPool().getNumWorkingProcesses() )
 
-idPool = range(10)
+
+idPool = range(5)
 retried = 0
+taskCounter = 0
+requestsPerCycle = 200
+while taskCounter < requestsPerCycle:
 
-while True:
-  reqId = 0
-  try:
-    reqId = idPool.pop()
-  except:
-    if retried== 1 :
-      break
-    retried += 1
-    print "Empty, we wait"
-    time.sleep(25)
-    idPool = range(10)
-    continue
+  while True:
+    print "processPool tasks idle = %s working = %s" % ( processPool().getNumIdleProcesses(), processPool().getNumWorkingProcesses() )
+    reqId = 0
+    try:
+      reqId = idPool.pop()
+    except:
+      if retried > 2 :
+        break
+      retried += 1
+      print "Empty, we wait"
+      time.sleep(25)
+      idPool = range(5)
+      continue
 
-  if not processPool().getFreeSlots():
-    print "No free slots available in processPool, will wait %d seconds to proceed" % 1
-    time.sleep( 1 )
-  else:
-    print "spawning task for request %s"%reqId
-    enqueue = processPool().createAndQueueTask( RequestTask,
+      if not processPool().getFreeSlots():
+        print "No free slots available in processPool, will wait %d seconds to proceed" % 1
+        time.sleep( 1 )
+    else:
+      print "spawning task for request %s"%reqId
+      enqueue = processPool().createAndQueueTask( RequestTask,
 	                                           kwargs = { "id": reqId}, 
 	                                           taskID = reqId,
 	                                           blocking = True,
 	                                           usePoolCallbacks = True,
 	                                           timeOut = 9 )
+    taskCounter += 1
 
 processPool().finalize( timeout = 5 )
 

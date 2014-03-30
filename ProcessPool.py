@@ -253,12 +253,12 @@ class WorkingProcess( multiprocessing.Process ):
 
       ## read from queue
       try:
-        task = self.__pendingQueue.get( block = True, timeout = 10 )   
+        task = self.__pendingQueue.get( block = True, timeout = 2 )   # timeout changed from 10
       except Queue.Empty:
         ## idle loop?
         idleLoopCount += 1
         ## 10th idle loop - exit, nothing to do 
-        if idleLoopCount == 10:
+        if idleLoopCount == 2: # changed from 10
           return 
         continue
 

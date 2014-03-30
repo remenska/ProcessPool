@@ -1,0 +1,224 @@
+dirac    26871  0.4  1.5 605824 64424 ?        SNl  06:24   4:25      \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Reques
+dirac    12446  0.0  1.1 528880 47268 ?        SNl  06:57   0:02          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Re
+
+
+
+2014-03-30 07:17:02 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-30 07:17:02 UTC RequestManagement/RequestExecutingAgent NOTICE: Agent module RequestManagement/RequestExecutingAgent run summary 
+2014-03-30 07:17:02 UTC RequestManagement/RequestExecutingAgent NOTICE:  Executed 173 times previously 
+2014-03-30 07:17:02 UTC RequestManagement/RequestExecutingAgent NOTICE:  Cycle took 2.92 seconds 
+2014-03-30 07:17:02 UTC RequestManagement/RequestExecutingAgent NOTICE:  Average execution time: 7.63 seconds 
+2014-03-30 07:17:02 UTC RequestManagement/RequestExecutingAgent NOTICE:  Polling time: 60 seconds 
+2014-03-30 07:17:02 UTC RequestManagement/RequestExecutingAgent NOTICE:  Average execution/polling time: 12.72% 
+2014-03-30 07:17:02 UTC RequestManagement/RequestExecutingAgent NOTICE:  Cycle was successful 
+2014-03-30 07:17:02 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-30 07:17:59 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-30 07:17:59 UTC RequestManagement/RequestExecutingAgent NOTICE: Starting cycle for module RequestManagement/RequestExecutingAgent 
+2014-03-30 07:17:59 UTC RequestManagement/RequestExecutingAgent NOTICE: Remaining 327 of 500 cycles 
+2014-03-30 07:17:59 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-30 07:18:00 UTC RequestManagement/RequestExecutingAgent   INFO: execute: no more 'Waiting' requests to process 
+2014-03-30 07:18:00 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-30 07:18:00 UTC RequestManagement/RequestExecutingAgent NOTICE: Agent module RequestManagement/RequestExecutingAgent run summary 
+2014-03-30 07:18:00 UTC RequestManagement/RequestExecutingAgent NOTICE:  Executed 174 times previously 
+2014-03-30 07:18:00 UTC RequestManagement/RequestExecutingAgent NOTICE:  Cycle took 0.35 seconds 
+2014-03-30 07:18:00 UTC RequestManagement/RequestExecutingAgent NOTICE:  Average execution time: 7.59 seconds 
+2014-03-30 07:18:00 UTC RequestManagement/RequestExecutingAgent NOTICE:  Polling time: 60 seconds 
+2014-03-30 07:18:00 UTC RequestManagement/RequestExecutingAgent NOTICE:  Average execution/polling time: 12.65% 
+2014-03-30 07:18:00 UTC RequestManagement/RequestExecutingAgent NOTICE:  Cycle was successful 
+2014-03-30 07:18:00 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-30 07:18:59 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-30 07:18:59 UTC RequestManagement/RequestExecutingAgent NOTICE: Starting cycle for module RequestManagement/RequestExecutingAgent 
+2014-03-30 07:18:59 UTC RequestManagement/RequestExecutingAgent NOTICE: Remaining 326 of 500 cycles 
+2014-03-30 07:18:59 UTC RequestManagement/RequestExecutingAgent NOTICE: ---------------------------------------- 
+2014-03-30 07:19:00 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 0 
+2014-03-30 07:19:00 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'LDSB.DcDpSg_removal_request.xml' 
+2014-03-30 07:19:00 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request LDSB.DcDpSg_removal_request.xml is 420 
+2014-03-30 07:19:01 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 0 
+2014-03-30 07:19:01 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'LDSB.5IllUS_removal_request.xml' 
+2014-03-30 07:19:01 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request LDSB.5IllUS_removal_request.xml is 420 
+
+
+
+dirac    26871  8316 26871  0    4 151456 64424  1 06:24 ?        00:03:23 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    26871  8316 26917  0    4 151456 64424  1 06:24 ?        00:00:20 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    26871  8316 26997  0    4 151456 64424  1 06:24 ?        00:00:04 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+dirac    26871  8316 26999  0    4 151456 64424  0 06:24 ?        00:00:02 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
+
+
+dirac    26871  0.4  1.5 605824 64424 ?        SNl  06:24   4:25      \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Reques
+dirac    12446  0.0  1.1 528880 47268 ?        SNl  06:57   0:02          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Re
+
+
+
+[dirac@lbvobox02 log]$ ps auxf | grep RequestExe
+dirac     8316  0.0  0.0   3940   336 ?        S    Mar17   0:00  \_ runsv RequestManagement_RequestExecutingAgent
+dirac    26871  0.4  1.5 605824 64424 ?        SNl  06:24   4:25      \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_RequestExecutingAgent.cfg
+dirac    12446  0.0  1.1 528880 47268 ?        SNl  06:57   0:02          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_RequestExecutingAgent.cfg
+
+
+
+Process 26871 attached with 4 threads - interrupt to quit
+[pid 26997] futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+[pid 26917] select(0, NULL, NULL, NULL, {0, 722621} <unfinished ...>
+[pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+[pid 26917] <... select resumed> )      = 0 (Timeout)
+[pid 26917] gettimeofday({1396213374, 100549}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213375, 105793}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213376, 110602}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213377, 123956}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213378, 126588}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213379, 131209}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213380, 148854}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213381, 155623}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213382, 165315}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213383, 175007}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213384, 180499}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}^C <unfinished ...>
+Process 26871 detached
+Process 26917 detached
+Process 26997 detached
+Process 26999 detached
+
+[dirac@lbvobox02 pro]$ strace -f -p 26917
+Process 26917 attached with 4 threads - interrupt to quit
+[pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+[pid 26997] futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 26917] select(0, NULL, NULL, NULL, {0, 345299} <unfinished ...>
+[pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+[pid 26917] <... select resumed> )      = 0 (Timeout)
+[pid 26917] gettimeofday({1396213426, 504132}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213427, 508785}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {0, 557769}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213428, 77152}, NULL) = 0
+[pid 26917] gettimeofday({1396213428, 77233}, NULL) = 0
+[pid 26917] gettimeofday({1396213428, 77423}, NULL) = 0
+[pid 26917] gettimeofday({1396213428, 77482}, NULL) = 0
+[pid 26917] gettimeofday({1396213428, 77537}, NULL) = 0
+[pid 26917] gettimeofday({1396213428, 77598}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213429, 92699}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213430, 104017}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213431, 109493}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213432, 117158}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213433, 123236}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213434, 189788}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213435, 196178}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213436, 215948}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}^C <unfinished ...>
+Process 26917 detached
+Process 26871 detached
+Process 26997 detached
+Process 26999 detached
+
+[dirac@lbvobox02 pro]$ strace -f -p 26997
+Process 26997 attached with 4 threads - interrupt to quit
+[pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+[pid 26997] futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 26917] select(0, NULL, NULL, NULL, {0, 465822} <unfinished ...>
+[pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+[pid 26917] <... select resumed> )      = 0 (Timeout)
+[pid 26917] gettimeofday({1396213505, 239499}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213506, 245119}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213507, 249564}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213508, 251319}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213509, 267040}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213510, 272502}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213511, 279740}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213512, 285075}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213513, 297226}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213514, 302574}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213515, 307743}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}^C <unfinished ...>
+Process 26997 detached
+Process 26871 detached
+Process 26917 detached
+Process 26999 detached
+
+
+
+[dirac@lbvobox02 pro]$ strace -f -p 26999
+Process 26999 attached with 4 threads - interrupt to quit
+[pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+[pid 26997] futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 26917] select(0, NULL, NULL, NULL, {0, 774084} <unfinished ...>
+[pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+[pid 26917] <... select resumed> )      = 0 (Timeout)
+[pid 26917] gettimeofday({1396213527, 437724}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213528, 461254}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213529, 483685}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213530, 485397}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213531, 490458}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213532, 498522}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213533, 510051}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213534, 519803}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213535, 524257}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+[pid 26917] gettimeofday({1396213536, 530221}, NULL) = 0
+[pid 26917] select(0, NULL, NULL, NULL, {1, 0}^C <unfinished ...>
+Process 26999 detached
+Process 26871 detached
+Process 26917 detached
+Process 26997 detached
+
+
+[dirac@lbvobox02 pro]$ strace -f -p 8316
+Process 8316 attached - interrupt to quit
+restart_syscall(<... resuming interrupted call ...>
+
+
+[dirac@lbvobox02 pro]$ strace -f -p 12446
+Process 12446 attached with 2 threads - interrupt to quit
+[pid 12447] select(0, NULL, NULL, NULL, {4, 587734} <unfinished ...>
+[pid 12446] futex(0x1d6d4f0, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid 12447] <... select resumed> )      = 0 (Timeout)
+[pid 12447] getppid()                   = 26871
+[pid 12447] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid 12447] getppid()                   = 26871
+[pid 12447] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid 12447] getppid()                   = 26871
+[pid 12447] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid 12447] getppid()                   = 26871
+[pid 12447] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid 12447] getppid()                   = 26871
+[pid 12447] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid 12447] getppid()                   = 26871
+[pid 12447] select(0, NULL, NULL, NULL, {5, 0}
+
+
