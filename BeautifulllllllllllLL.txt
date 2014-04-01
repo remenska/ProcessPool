@@ -741,3 +741,44 @@ dirac    26871  8316 26917  0    4 151456 64424  0 06:24 ?        00:00:21 pytho
 dirac    26871  8316 26997  0    4 151456 64424  0 06:24 ?        00:00:04 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
 dirac    26871  8316 26999  0    4 151456 64424  0 06:24 ?        00:00:02 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
 
+
+
+again last time:
+
+2014-03-31 19:36:49 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 3 
+2014-03-31 19:36:49 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'LDSB.OpxwH5_removal_request.xml' 
+2014-03-31 19:36:49 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request LDSB.OpxwH5_removal_request.xml is 420 
+2014-03-31 19:40:31 UTC RequestManagement/RequestExecutingAgent   INFO: callback: 00034959_00119416_job_72533845 result is S_ERROR(Timed out) 
+2014-03-31 19:40:31 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 3 
+2014-03-31 19:40:31 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'LDSB.woJrOo_removal_request.xml' 
+2014-03-31 19:40:31 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request LDSB.woJrOo_removal_request.xml is 420 
+2014-03-31 19:43:58 UTC RequestManagement/RequestExecutingAgent   INFO: callback: LDSB.sylJ4d_removal_request.xml result is S_ERROR(Timed out) 
+2014-03-31 19:43:59 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 3 
+2014-03-31 19:43:59 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request '00035156_00017922' 
+2014-03-31 19:43:59 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request 00035156_00017922 is 900 
+2014-03-31 19:51:08 UTC RequestManagement/RequestExecutingAgent   INFO: callback: LDSB.3cgQrS_removal_request.xml result is S_ERROR(Timed out) 
+2014-03-31 19:51:08 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 3 
+2014-03-31 19:51:08 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request '00034957_00168681_job_73532693' 
+2014-03-31 19:51:08 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request 00034957_00168681_job_73532693 is 900 
+2014-03-31 19:58:18 UTC RequestManagement/RequestExecutingAgent   INFO: callback: LDSB.BoOwUx_removal_request.xml result is S_ERROR(Timed out) 
+2014-03-31 19:58:19 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 3 
+2014-03-31 19:58:19 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request '00035156_00017924' 
+2014-03-31 19:58:19 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request 00035156_00017924 is 900 
+2014-03-31 20:05:28 UTC RequestManagement/RequestExecutingAgent   INFO: callback: LDSB.rWPlqu_removal_request.xml result is S_ERROR(Timed out) 
+2014-03-31 20:05:29 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 3 
+2014-03-31 20:05:29 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'LDSB.8Qc5TB_removal_request.xml' 
+2014-03-31 20:05:29 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request LDSB.8Qc5TB_removal_request.xml is 420 
+2014-03-31 20:05:40 UTC RequestManagement/RequestExecutingAgent   INFO: callback: 00035156_00017913 result is S_ERROR(Timed out) 
+2014-03-31 20:05:41 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 3 
+2014-03-31 20:05:41 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request '00034282_00009887' 
+2014-03-31 20:05:41 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request 00034282_00009887 is 900 
+2014-03-31 20:12:38 UTC RequestManagement/RequestExecutingAgent   INFO: callback: LDSB.CqgHoA_removal_request.xml result is S_ERROR(Timed out) 
+2014-03-31 20:12:38 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 3 
+2014-03-31 20:12:38 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'LDSB.3E7AVk_removal_request.xml' 
+2014-03-31 20:12:38 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request LDSB.3E7AVk_removal_request.xml is 420 
+2014-03-31 20:12:50 UTC RequestManagement/RequestExecutingAgent   INFO: callback: LDSB.LaEW02_removal_request.xml result is S_ERROR(Timed out) 
+2014-03-31 20:12:51 UTC RequestManagement/RequestExecutingAgent   INFO: processPool tasks idle = 1 working = 3 
+2014-03-31 20:12:51 UTC RequestManagement/RequestExecutingAgent   INFO: spawning task for request 'LDSB.HP8SVh_removal_request.xml' 
+2014-03-31 20:12:51 UTC RequestManagement/RequestExecutingAgent   INFO: estimated timeOut for request LDSB.HP8SVh_removal_request.xml is 420 
+
+
