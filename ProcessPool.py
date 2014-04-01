@@ -186,12 +186,14 @@ class WorkingProcess( multiprocessing.Process ):
     while True:      
       ## parent is dead,  commit suicide
       if os.getppid() == 1:
+	print ">>>>>>>>>>>>>>>>WATCHDOG WILL KILL ITSELF"
         os.kill( self.pid, signal.SIGTERM )
         ## wait for half a minute and if worker is still alive use REAL silencer
         time.sleep(30)
         ## now you're dead
         os.kill( self.pid, signal.SIGKILL )
       ## wake me up in 5 seconds
+      print "PID:%s PPID:%s watchdog will sleep for 5 secs..." % (os.getpid(),os.getppid())
       time.sleep(5)
 
   def isWorking( self ):
@@ -225,10 +227,11 @@ class WorkingProcess( multiprocessing.Process ):
     :param self: self reference
     """
     ## start watchdog thread
+    print "PID:%s PPID:%s Started WorkingProcess...." % (os.getpid(), os.getppid()) 
     self.__watchdogThread = threading.Thread( target = self.__watchdog )
     self.__watchdogThread.daemon = True
     self.__watchdogThread.start()
-
+    print "PID:%s PPID:%s started watchdogThread.." % (os.getpid(), os.getppid())
     ## http://cdn.memegenerator.net/instances/400x/19450565.jpg
     if LockRing:
       # Reset all locks
@@ -253,12 +256,15 @@ class WorkingProcess( multiprocessing.Process ):
 
       ## read from queue
       try:
-        task = self.__pendingQueue.get( block = True, timeout = 2 )   # timeout changed from 10
+	print "PID:%s PPID:%s Will try to GET from Pending Queue..." % (os.getpid(), os.getppid())
+        task = self.__pendingQueue.get( block = True, timeout = 5 )   # timeout changed from 10
+        print "PID:%s PPID:%s GOT a task from pending queue.." % (os.getpid(), os.getppid())
       except Queue.Empty:
         ## idle loop?
         idleLoopCount += 1
         ## 10th idle loop - exit, nothing to do 
         if idleLoopCount == 2: # changed from 10
+          print "PID:%s PPID:%s Tried 10 times to get something, exiting..."% (os.getpid(), os.getppid())
           return 
         continue
 
@@ -272,7 +278,7 @@ class WorkingProcess( multiprocessing.Process ):
       ## process task in a separate thread
       self.__processThread = threading.Thread( target = self.__processTask )
       self.__processThread.start()
-
+      print "PID:%s PPID:%s started process Thread..." % (os.getpid(), os.getppid())
       ## join processThread with or without timeout
       if self.task.getTimeOut():
         self.__processThread.join( self.task.getTimeOut()+10 )
@@ -283,11 +289,13 @@ class WorkingProcess( multiprocessing.Process ):
       if self.__processThread.is_alive():
         self.__processThread._Thread__stop()
       
+      print "PID:%s PPID:%s Process thread done..."% (os.getpid(), os.getppid())
       ## check results and callbacks presence, put task to results queue
       if self.task.hasCallback() or self.task.hasPoolCallback():
         if not self.task.taskResults() and not self.task.taskException():
           self.task.setResult( S_ERROR("Timed out") )
         self.__resultsQueue.put( task )
+        print "ResultsQueue = %s " % self.__resultsQueue.qsize()
       ## increase task counter
       taskCounter += 1
       self.__taskCounter = taskCounter 
@@ -672,10 +680,12 @@ class ProcessPool( object ):
     """
     self.__prListLock.acquire()
     try:
+      print "PID=%s PPID=%s ProcessPool will create a WorkingProcess..." % (os.getpid(), os.getppid())
       worker = WorkingProcess( self.__pendingQueue, self.__resultsQueue, self.__stopEvent )
       while worker.pid == None:
         time.sleep(0.1)
       self.__workersDict[ worker.pid ] = worker
+      print "__workersDict = %s " %self.__workersDict
     finally:
       self.__prListLock.release()
 
@@ -728,9 +738,11 @@ class ProcessPool( object ):
 
     self.__prListLock.acquire()
     try:
+      print "Will put task= %s in Pending Queue" % task.getTaskID() 
       self.__pendingQueue.put( task, block = blocking )
     except Queue.Full:
       self.__prListLock.release()
+      print "ERROR: QUEUE IS FULL, ERROR!"
       return S_ERROR( "Queue is full" )
     finally:
       self.__prListLock.release()

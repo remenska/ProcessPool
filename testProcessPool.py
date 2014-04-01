@@ -10,12 +10,19 @@ class RequestTask:
     print "Create %s"%id
 
   def __call__(self):
-    sleepTime = random.randint(0,20)
-    print "Req %s sleep %s"%(self.__id, sleepTime)
-    time.sleep(sleepTime)
+    randomNumber = random.randint(0,2000000)
+    #print "Req %s sleep %s"%(self.__id, sleepTime)
+    while randomNumber!=10:
+      randomNumber = random.randint(0,2000000)
     print "Req %s finished"%self.__id
 
-
+  #  original:
+  #def __call__(self):
+    #sleepTime = random.randint(0,20)
+    #print "Req %s sleep %s"%(self.__id, sleepTime)
+    #time.sleep(sleepTime)
+    #print "Req %s finished"%self.__id
+    
 from ProcessPool import ProcessPool
 
 def resultCallback( self, taskID, taskResult ):
@@ -44,10 +51,10 @@ def processPool(  ):
 
 
 
-idPool = range(5)
+idPool = range(8)
 retried = 0
 taskCounter = 0
-requestsPerCycle = 200
+requestsPerCycle = 20
 while taskCounter < requestsPerCycle:
 
   while True:
@@ -56,12 +63,12 @@ while taskCounter < requestsPerCycle:
     try:
       reqId = idPool.pop()
     except:
-      if retried > 2 :
+      if retried > 3 :
         break
       retried += 1
       print "Empty, we wait"
       time.sleep(25)
-      idPool = range(5)
+      idPool = range(7)
       continue
 
       if not processPool().getFreeSlots():
@@ -74,10 +81,10 @@ while taskCounter < requestsPerCycle:
 	                                           taskID = reqId,
 	                                           blocking = True,
 	                                           usePoolCallbacks = True,
-	                                           timeOut = 9 )
+	                                           timeOut = 20 )
     taskCounter += 1
 
-processPool().finalize( timeout = 5 )
+processPool().finalize( timeout = 10 )
 
 
 

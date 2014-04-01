@@ -706,6 +706,7 @@ dirac    12446 26871 12447  0    2 132220 47268  1 06:57 ?        00:00:02 pytho
 
 
 [dirac@lbvobox02 log]$ ps -eLF | grep RequestExe
+UID        PID  PPID   LWP  C NLWP    SZ   RSS PSR STIME TTY          TIME CMD
 dirac     8316 11220  8316  0    1   985   336   0 Mar17 ?        00:00:00 runsv RequestManagement_RequestExecutingAgent
 dirac    10179 24682 10179  0    1 25796   856   0 23:28 pts/1    00:00:00 grep RequestExe
 dirac    12446 26871 12446  0    2 132220 47268  0 06:57 ?        00:00:00 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_RequestExecutingAgent.cfg
@@ -731,8 +732,8 @@ dirac     8318  0.0  0.0   4084   416 ?        S    Mar17   2:06      \_ svlogd 
 dirac    26871  0.4  1.5 605824 64424 ?        SNl  06:24   4:26      \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Reques
 dirac    12446  0.0  1.1 528880 47268 ?        SNl  06:57   0:02          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Re
 
---------------
-
+--------------                 (number of lightweight processes?)
+UID        PID  PPID   LWP  C NLWP    SZ   RSS PSR STIME TTY          TIME CMD
 dirac    12446 26871 12446  0    2 132220 47268  0 06:57 ?        00:00:00 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
 dirac    12446 26871 12447  0    2 132220 47268  1 06:57 ?        00:00:02 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/etc/RequestManagement_Requ
 

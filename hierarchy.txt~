@@ -1,0 +1,108 @@
+8316 runsv
+|
+ strace -f -p 8316
+ Process 8316 attached - interrupt to quit
+ restart_syscall(<... resuming interrupted call ...>
+ \_ 26871 Agent
+    Process 26871 attached with 4 threads - interrupt to quit
+    [pid 26917] select(0, NULL, NULL, NULL, {0, 778102} <unfinished ...>
+    [pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+    [pid 26997] futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+    [pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+    [pid 26917] <... select resumed> )      = 0 (Timeout)
+    [pid 26917] gettimeofday({1396214221, 248772}, NULL) = 0
+    [pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+    [pid 26917] gettimeofday({1396214222, 252581}, NULL) = 0
+    [pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+    [pid 26917] gettimeofday({1396214223, 257791}, NULL) = 0
+    [pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+    [pid 26917] gettimeofday({1396214224, 270167}, NULL) = 0
+    [pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+    [pid 26917] gettimeofday({1396214225, 282656}, NULL) = 0
+    [pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+   |
+    \_ 12446 WorkingProcess
+	Process 12446 attached with 2 threads - interrupt to quit
+	[pid 12447] select(0, NULL, NULL, NULL, {4, 587734} <unfinished ...>
+	[pid 12446] futex(0x1d6d4f0, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+	[pid 12447] <... select resumed> )      = 0 (Timeout)
+	[pid 12447] getppid()                   = 26871
+	[pid 12447] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+	[pid 12447] getppid()                   = 26871
+	[pid 12447] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+	[pid 12447] getppid()                   = 26871
+	[pid 12447] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+	[pid 12447] getppid()                   = 26871
+	[pid 12447] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+      |
+       \_ 12447 (watchdog thread)
+	  12447 select(0, NULL, NULL, NULL, {1, 312428} <unfinished ...>
+	  12446 futex(0x1d6d4f0, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+	  12447 <... select resumed> )            = 0 (Timeout)
+	  12447 getppid()                         = 26871
+	  12447 select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+	  12447 getppid()                         = 26871
+	  12447 select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+	  12447 getppid()                         = 26871
+    \_ 26917
+	Process 26917 attached with 4 threads - interrupt to quit
+	[pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+	[pid 26997] futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+	[pid 26917] select(0, NULL, NULL, NULL, {0, 34259} <unfinished ...>
+	[pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+	[pid 26917] <... select resumed> )      = 0 (Timeout)
+	[pid 26917] gettimeofday({1396214420, 552888}, NULL) = 0
+	[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	[pid 26917] gettimeofday({1396214421, 562301}, NULL) = 0
+    \_ 26997
+	Process 26997 attached with 4 threads - interrupt to quit
+	[pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+	[pid 26997] futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+	[pid 26917] select(0, NULL, NULL, NULL, {0, 465822} <unfinished ...>
+	[pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+	[pid 26917] <... select resumed> )      = 0 (Timeout)
+	[pid 26917] gettimeofday({1396213505, 239499}, NULL) = 0
+	[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	[pid 26917] gettimeofday({1396213506, 245119}, NULL) = 0
+	[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	[pid 26917] gettimeofday({1396213507, 249564}, NULL) = 0
+	[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	[pid 26917] gettimeofday({1396213508, 251319}, NULL) = 0
+	[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	[pid 26917] gettimeofday({1396213509, 267040}, NULL) = 0
+    \_ 26999
+	Process 26999 attached with 4 threads - interrupt to quit
+	[pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+	[pid 26997] futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+	[pid 26917] select(0, NULL, NULL, NULL, {0, 774084} <unfinished ...>
+	[pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+	[pid 26917] <... select resumed> )      = 0 (Timeout)
+	[pid 26917] gettimeofday({1396213527, 437724}, NULL) = 0
+	[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	[pid 26917] gettimeofday({1396213528, 461254}, NULL) = 0
+	[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	[pid 26917] gettimeofday({1396213529, 483685}, NULL) = 0
+	[pid 26917] select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	[pid 26917] gettimeofday({1396213530, 485397}, NULL) = 0
+  
+
+
+
+
+
+
+
+
+=========
+8316 runsv
+|
+ \_ 26871 Agent
+   |
+    \_ 12446 WorkingProcess
+      |
+       \_ 12447 
+    \_ 26917
+    \_ 26997
+    \_ 26999
+
+  

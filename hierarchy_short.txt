@@ -1,0 +1,62 @@
+8316 runsv
+|
+ restart_syscall(<... resuming interrupted call ...>
+ \_ 26871 Agent
+    [pid 26871] futex(0x7ff31ac90000, FUTEX_WAIT, 0, NULL <unfinished ...>
+   |
+    \_ 12446 WorkingProcess
+	[pid 12446] futex(0x1d6d4f0, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+      |
+       \_ 12447 (watchdog thread)
+	  12447 select(0, NULL, NULL, NULL, {1, 312428} <unfinished ...>
+	  12447 getppid()                         = 26871
+	  12447 select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+	  12447 getppid()                         = 26871
+	  12447 select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+	  12447 getppid()                         = 26871
+    \_ 26917
+	26917 select(0, NULL, NULL, NULL, {0, 832724} <unfinished ...>
+	26917 <... select resumed> )            = 0 (Timeout)
+	26917 gettimeofday({1396214480, 430083}, NULL) = 0
+	26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	26917 gettimeofday({1396214481, 446668}, NULL) = 0
+	26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	26917 gettimeofday({1396214482, 451620}, NULL) = 0
+	26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	26917 gettimeofday({1396214483, 485636}, NULL) = 0
+	26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+        ...
+	26917 gettimeofday({1396214568, 61589}, NULL) = 0
+	26917 gettimeofday({1396214568, 61654}, NULL) = 0
+	26917 gettimeofday({1396214568, 61708}, NULL) = 0
+	26917 gettimeofday({1396214568, 61761}, NULL) = 0
+	26917 gettimeofday({1396214568, 61814}, NULL) = 0
+	26917 gettimeofday({1396214568, 61866}, NULL) = 0
+        ...
+	26917 gettimeofday({1396214568, 149525}, NULL) = 0
+	26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	26917 gettimeofday({1396214569, 169820}, NULL) = 0
+	26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	26917 gettimeofday({1396214570, 195403}, NULL) = 0
+	26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+	26917 gettimeofday({1396214571, 223542}, NULL) = 0
+	26917 select(0, NULL, NULL, NULL, {1, 0}) = 0 (Timeout)
+    \_ 26997
+	26997 futex(0x2fa9f50, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+    \_ 26999
+	[pid 26999] write(4, ")U\0hLU\17RegisterReplicar=\7\0\0hNU\0031"..., 172032 <unfinished ...>
+
+  
+=========
+8316 runsv
+|
+ \_ 26871 Agent
+   |
+    \_ 12446 WorkingProcess
+      |
+       \_ 12447 
+    \_ 26917
+    \_ 26997
+    \_ 26999
+
+  
