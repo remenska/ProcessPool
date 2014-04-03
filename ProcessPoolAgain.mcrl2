@@ -59,7 +59,8 @@ proc RequestExecutingAgent_mem(__requestsPerCycle:Nat, minProcess:Nat, maxProces
 ;
 
 
-proc RequestExecutingAgent = CreateProcessPool.RequestExecutingAgent_execute(0);
+% todo CreateProcessPool
+proc RequestExecutingAgent = RequestExecutingAgent_execute(0) || RequestExecutingAgent_mem(10,1,8,10) ;
 
 
 proc RequestExecutingAgent_execute(taskCounter:Nat) =
@@ -72,7 +73,7 @@ proc RequestExecutingAgent_execute(taskCounter:Nat) =
 
 %% creates tasks....
 proc RequestClient = 
-    r_getRequest(task(1,true,10, LogUpload)).RequestClient;
+    r_getRequest(task(1,true,10, LogUpload));
 
 %%%%%%% ========== END RequestExecutingAgent 
 
@@ -148,6 +149,8 @@ proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:
 
 %%% ============= END Memory for queueues
 
+%%%% === START WorkingProcess 
+% 
 %%% WorkingProcess Memory
 proc WorkingProcess_mem(wpid:Nat, __working:Bool,__taskCounter:Nat,__watchdogThread:Nat, __processThread:Nat,task:Task) = 
       r_isWorking(__working).
@@ -173,7 +176,7 @@ proc WatchdogThread(wpid:Nat, wdtid:Nat) = doSomethingWatchdog.WatchdogThread(wp
 
 proc ProcessThread(wpid:Nat, ptid:Nat)= runProcessThread(wpid,ptid).processTask;
 
-proc WorkingProcess(wpid:Nat) = WorkingProcess_start(wpid);
+proc WorkingProcess(wpid:Nat) = WorkingProcess_start(wpid) || WorkingProcess_mem(1,false,0,1,1,None);
 
 %WorkingProcess_start(wpid:Nat) = s_runWatchdogThread(wpid, 1);
 proc WorkingProcess_start(wpid:Nat) = runWorkingProcess.WatchdogThread(wpid, 1) || % TODO: like this or with s_runWatchdogThread ?
@@ -252,14 +255,17 @@ init block(  { r_getMaxSize, s_getMaxSize, r_getMinSize, s_getMinSize,
 
        },
        %% === Agent stuff
-       RequestExecutingAgent_mem(10,1,8,10) || RequestExecutingAgent || RequestClient ||
+       RequestExecutingAgent || RequestClient ||
        
        %% ==== ProcessPool stuff
 %         ProcessPool_mem(1,8,10,[],false) || __prListLock || 
+
+	% __pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool
         Queues_mem([task(1,true,10, RegisterFile),task(2,true,10, RemoveFile)],[],false)  || 
         % ProcessPool || %% TODO: Enable again
         %% === WorkingProcess stuff
-        WorkingProcess_mem(1,false,0,1,1,None) || WorkingProcess(1)
+	% wpid:Nat, __working:Bool,__taskCounter:Nat,__watchdogThread:Nat, __processThread:Nat,task:Task
+         WorkingProcess(1)
      ));
      
      
