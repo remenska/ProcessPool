@@ -1,0 +1,238 @@
+Grab the PIDs
+ps auxf | grep RequestExecutingAgent | awk '{ print $2; }'
+
+ps -eLF | grep RequestExecutingAgent | awk '{ print $2, $3, $4, $6; }'
+
+ PID  PPID   LWP  NLWP
+
+better yet:
+ps -eLF | grep RequestExecutingAgent | awk '{ print $4, $2, $3, $6; }'
+order: LWP PID PPID
+
+ps auxf:
+
+dirac     8316  0.0  0.0   3940   352 ?        S    Mar17   0:00  \_ runsv RequestManagement_RequestExecutingAgent
+dirac     8318  0.0  0.0   4084   416 ?        S    Mar17   2:33      \_ svlogd .
+dirac    21667  8.8  1.6 605644 67068 ?        SNl  Apr02  89:49      \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dira
+dirac    22097  6.6  1.9 738404 77784 ?        SNl  Apr02  67:06          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/
+dirac    14927  7.4  2.3 748968 95876 ?        SNl  02:40  43:38          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/
+dirac      967  7.9  2.6 748972 107168 ?       SNl  03:27  42:51          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/
+dirac    15853  8.0  2.1 738712 88984 ?        SNl  05:19  34:25          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/
+dirac    24001  8.9  2.3 740776 96564 ?        SNl  05:40  36:35          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/
+dirac    31222  9.0  2.3 728484 95040 ?        SNl  05:52  35:59          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/
+dirac     6052  0.0  1.5 605644 64700 ?        SNl  06:10   0:00          \_ python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/
+
+dirac      863  0.0  1.2 530560 48712 ?        SNl  Mar31   0:00 python /opt/dirac/pro/DIRAC/Core/scripts/dirac-agent.py RequestManagement/RequestExecutingAgent /opt/dirac/pro/et
+
+ps -eLF:
+863 1 863 3
+863 1 864 3
+863 1 865 3
+967 21667 967 4
+967 21667 968 4
+967 21667 1449 4
+967 21667 19826 4
+6052 21667 6052 2
+6052 21667 6053 2
+8316 11220 8316 1
+14927 21667 14927 4
+14927 21667 14928 4
+14927 21667 15084 4
+14927 21667 20000 4
+15853 21667 15853 4
+15853 21667 15854 4
+15853 21667 16050 4
+15853 21667 19904 4
+21667 8316 21667 4
+21667 8316 21723 4
+21667 8316 21792 4
+21667 8316 21794 4
+22097 21667 22097 4
+22097 21667 22098 4
+22097 21667 22358 4
+22097 21667 19950 4
+31222 21667 31222 4
+31222 21667 31223 4
+31222 21667 31323 4
+31222 21667 19911 4
+
+
+[dirac@lbvobox02 log]$ ps -eLF | grep RequestExecutingAgent | awk '{ print $2, $3, $4, $6; }' | grep 22097
+22097 21667 22097 4
+22097 21667 22098 4
+22097 21667 22358 4
+22097 21667 31115 4
+[dirac@lbvobox02 log]$ ps -eLF | grep RequestExecutingAgent | awk '{ print $2, $3, $4, $6; }' | grep 22097
+22097 21667 22097 3
+22097 21667 22098 3
+22097 21667 22358 3
+
+22097: Main thread of control
+[dirac@lbvobox02 log]$ strace -p 22097
+Process 22097 attached - interrupt to quit
+select(0, NULL, NULL, NULL, {0, 0})     = 0 (Timeout)
+gettimeofday({1396522513, 255699}, NULL) = 0
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 310665}, NULL) = 0
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 380755}, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAKE_PRIVATE, 1) = 1
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 474037}, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAKE_PRIVATE, 1) = 1
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 524969}, NULL) = 0
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 582027}, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAKE_PRIVATE, 1) = 1
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 634418}, NULL) = 0
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 702271}, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAKE_PRIVATE, 1) = 1
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 757546}, NULL) = 0
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 811467}, NULL) = 0
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 862775}, NULL) = 0
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 913697}, NULL) = 0
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+gettimeofday({1396522513, 970581}, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+gettimeofday({1396522659, 228256}, NULL) = 0
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAKE_PRIVATE, 1) = 1
+gettimeofday({1396522659, 335495}, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAKE_PRIVATE, 1) = 0
+select(0, NULL, NULL, NULL, {0, 50000}) = 0 (Timeout)
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994006b90, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+
+does WAKE eventually
+----
+22098: Obviously watchdog
+--
+[dirac@lbvobox02 log]$ strace -p 22098
+Process 22098 attached - interrupt to quit
+select(0, NULL, NULL, NULL, {2, 605062}) = 0 (Timeout)
+getppid()                               = 21667
+select(0, NULL, NULL, NULL, {5, 0})     = 0 (Timeout)
+getppid()                               = 21667
+select(0, NULL, NULL, NULL, {5, 0})     = 0 (Timeout)
+getppid()                               = 21667
+select(0, NULL, NULL, NULL, {5, 0}^C <unfinished ...>
+Process 22098 detached
+--
+22358: worker thread?
+[dirac@lbvobox02 log]$ strace -p 22358
+Process 22358 attached - interrupt to quit
+futex(0x7f69982f36e0, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+write(6, "\0\0\6\341\200\2cDIRAC.Core.Utilities.Proc"..., 1765) = 1765
+futex(0x7f6998344370, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+write(6, "\0\0\6\337\200\2cDIRAC.Core.Utilities.Proc"..., 1763) = 1763
+futex(0x7f69983478d0, FUTEX_WAIT_PRIVATE, 0, NULL
+--
+What is it doing in futex? but futexes get acquired/released eventually; ok;
+must be the inner locks of __pendingQueue.get and __pendingQueue.put
+
+[dirac@lbvobox02 log]$ strace -f -p 6052
+Process 6052 attached with 2 threads - interrupt to quit
+[pid  6053] select(0, NULL, NULL, NULL, {3, 634462} <unfinished ...>
+[pid  6052] futex(0x179e4f0, FUTEX_WAIT_PRIVATE, 0, NULL <unfinished ...>
+[pid  6053] <... select resumed> )      = 0 (Timeout)
+[pid  6053] getppid()                   = 21667
+[pid  6053] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid  6053] getppid()                   = 21667
+[pid  6053] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid  6053] getppid()                   = 21667
+[pid  6053] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid  6053] getppid()                   = 21667
+[pid  6053] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid  6053] getppid()                   = 21667
+[pid  6053] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid  6053] getppid()                   = 21667
+[pid  6053] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid  6053] getppid()                   = 21667
+[pid  6053] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid  6053] getppid()                   = 21667
+[pid  6053] select(0, NULL, NULL, NULL, {5, 0}) = 0 (Timeout)
+[pid  6053] getppid()                   = 21667
+[pid  6053] select(0, NULL, NULL, NULL, {5, 0}^C <unfinished ...>
+Process 6052 detached
+Process 6053 detached
+
+Let's take this one: 14927. What are the children doing
+[dirac@lbvobox02 log]$ strace -p 14928
+Process 14928 attached - interrupt to quit
+select(0, NULL, NULL, NULL, {2, 553396}) = 0 (Timeout)
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = -1 EAGAIN (Resource temporarily unavailable)
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+getppid()                               = 21667
+select(0, NULL, NULL, NULL, {5, 0})     = 0 (Timeout)
+getppid()                               = 21667
+select(0, NULL, NULL, NULL, {5, 0})     = 0 (Timeout)
+getppid()                               = 21667
+select(0, NULL, NULL, NULL, {5, 0})     = 0 (Timeout)
+getppid()                               = 21667
+select(0, NULL, NULL, NULL, {5, 0})     = 0 (Timeout)
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+futex(0x7f6994008320, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+getppid()                               = 21667
+futex(0x7f6994008320, FUTEX_WAKE_PRIVATE, 1) = 1
+select(0, NULL, NULL, NULL, {5, 0})     = 0 (Timeout)
+getppid()                               = 21667
+----------
+[dirac@lbvobox02 log]$ strace -p 15084
+Process 15084 attached - interrupt to quit
+futex(0x7f69982c4290, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+write(6, "\0\0\7\25\200\2cDIRAC.Core.Utilities.Proc"..., 1817) = 1817
+futex(0x7f69982c87c0, FUTEX_WAIT_PRIVATE, 0, NULL
+----------

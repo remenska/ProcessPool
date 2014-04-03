@@ -1,0 +1,504 @@
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(8, "root:x:0:0:root:/root:/bin/bash\n"..., 4096) = 1494
+close(8)                                = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/home/dirac", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+stat("/home/dirac/.globus/hostcert.pem", 0x7f6993ff94e0) = -1 ENOENT (No such file or directory)
+stat("/tmp/dirac/tmpoEHFBq", {st_mode=S_IFREG|0600, st_size=9738, ...}) = 0
+geteuid()                               = 25133
+open("/tmp/dirac/tmpoEHFBq", O_RDONLY)  = 8
+fstat(8, {st_mode=S_IFREG|0600, st_size=9738, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(8, "-----BEGIN CERTIFICATE-----\nMIIC"..., 4096) = 4096
+read(8, "eTYrOY0U5dAFON/q/TITDJVJyURKZi\nu"..., 4096) = 4096
+read(8, "OQ9XTI87oH8UDJ/h02hUI8YNjaJxrglr"..., 4096) = 1546
+read(8, "", 4096)                       = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+close(8)                                = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+gettimeofday({1396528219, 401792}, NULL) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+geteuid()                               = 25133
+open("/etc/passwd", O_RDONLY|O_CLOEXEC) = 8
+fstat(8, {st_mode=S_IFREG|0644, st_size=1494, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(8, "root:x:0:0:root:/root:/bin/bash\n"..., 4096) = 1494
+close(8)                                = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/home/dirac", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+stat("/home/dirac/.globus/certificates", 0x7f6993ff9520) = -1 ENOENT (No such file or directory)
+write(9, "t\";appver=\"7.4 (gcc64, 134081006"..., 4096) = 4096
+stat("/etc/grid-security/certificates", {st_mode=S_IFDIR|0755, st_size=53248, ...}) = 0
+socket(PF_NETLINK, SOCK_RAW, 0)         = 8
+bind(8, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(8, {sa_family=AF_NETLINK, pid=13655, groups=00000000}, [12]) = 0
+gettimeofday({1396528219, 405453}, NULL) = 0
+sendto(8, "\24\0\0\0\26\0\1\3[T=S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(8, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0[T=SW5\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 108
+recvmsg(8, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0[T=SW5\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(8, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0[T=SW5\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(8)                                = 0
+socket(PF_INET, SOCK_DGRAM, IPPROTO_IP) = 8
+connect(8, {sa_family=AF_INET, sin_port=htons(8443), sin_addr=inet_addr("128.142.161.75")}, 16) = 0
+getsockname(8, {sa_family=AF_INET, sin_port=htons(44517), sin_addr=inet_addr("128.142.153.142")}, [16]) = 0
+connect(8, {sa_family=AF_UNSPEC, sa_data="\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16) = 0
+connect(8, {sa_family=AF_INET, sin_port=htons(8443), sin_addr=inet_addr("128.142.162.98")}, 16) = 0
+getsockname(8, {sa_family=AF_INET, sin_port=htons(54549), sin_addr=inet_addr("128.142.153.142")}, [16]) = 0
+close(8)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 8
+setsockopt(8, SOL_SOCKET, SO_SNDBUF, [65536], 4) = 0
+setsockopt(8, SOL_SOCKET, SO_RCVBUF, [65536], 4) = 0
+setsockopt(8, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+fcntl(8, F_GETFL)                       = 0x2 (flags O_RDWR)
+fcntl(8, F_SETFL, O_RDWR|O_NONBLOCK)    = 0
+connect(8, {sa_family=AF_INET, sin_port=htons(8443), sin_addr=inet_addr("128.142.161.75")}, 16) = -1 EINPROGRESS (Operation now in progress)
+select(9, NULL, [8], NULL, {440, 0})    = 1 (out [8], left {439, 994549})
+getsockopt(8, SOL_SOCKET, SO_ERROR, [0], [4]) = 0
+fcntl(8, F_GETFL)                       = 0x802 (flags O_RDWR|O_NONBLOCK)
+fcntl(8, F_SETFL, O_RDWR|O_NONBLOCK)    = 0
+getpeername(8, {sa_family=AF_INET, sin_port=htons(8443), sin_addr=inet_addr("128.142.161.75")}, [16]) = 0
+geteuid()                               = 25133
+open("/etc/passwd", O_RDONLY|O_CLOEXEC) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=1494, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "root:x:0:0:root:/root:/bin/bash\n"..., 4096) = 1494
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/home/dirac", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+stat("/home/dirac/.globus/certificates", 0x7f6993ff94a0) = -1 ENOENT (No such file or directory)
+stat("/etc/grid-security/certificates", {st_mode=S_IFDIR|0755, st_size=53248, ...}) = 0
+gettimeofday({1396528219, 414572}, NULL) = 0
+gettimeofday({1396528219, 414757}, NULL) = 0
+select(9, NULL, [8], [8], {440, 0})     = 1 (out [8], left {439, 999997})
+sendto(8, "\26\3\1\1\2\1\0\0\376\3\3S=T[/nwt\22\347S\205\265\231\311k\266\366\310\372\7"..., 263, 0, NULL, 0) = 263
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 994774})
+recvfrom(8, "\26\3\1\0Q", 5, 0, NULL, NULL) = 5
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\2\0\0M\3\1S=T[vv\212\32bl\213-\360\4\3522\272\205~\345,\264\261\322d\204"..., 81, 0, NULL, NULL) = 81
+gettimeofday({1396528219, 420681}, NULL) = 0
+gettimeofday({1396528219, 420735}, NULL) = 0
+gettimeofday({1396528219, 420768}, NULL) = 0
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\26\3\1\20\245", 5, 0, NULL, NULL) = 5
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\v\0\20\241\0\20\236\0\6\2500\202\6\2440\202\5\214\240\3\2\1\2\2\n4\17\247\31\0\2\0"..., 4261, 0, NULL, NULL) = 4261
+gettimeofday({1396528219, 421049}, NULL) = 0
+stat("/etc/grid-security/certificates/2eb756e6.0", {st_mode=S_IFREG|0644, st_size=1350, ...}) = 0
+open("/etc/grid-security/certificates/2eb756e6.0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=1350, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN CERTIFICATE-----\nMIID"..., 4096) = 1350
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/2eb756e6.1", 0x7f6993ff9120) = -1 ENOENT (No such file or directory)
+gettimeofday({1396528219, 423067}, NULL) = 0
+gettimeofday({1396528219, 423106}, NULL) = 0
+stat("/etc/grid-security/certificates/2eb756e6.r0", {st_mode=S_IFREG|0644, st_size=1015, ...}) = 0
+open("/etc/grid-security/certificates/2eb756e6.r0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=1015, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN X509 CRL-----\nMIICxjC"..., 4096) = 1015
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/2eb756e6.r1", 0x7f6993ff8fd0) = -1 ENOENT (No such file or directory)
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+gettimeofday({1396528219, 424790}, NULL) = 0
+gettimeofday({1396528219, 424927}, NULL) = 0
+gettimeofday({1396528219, 425323}, NULL) = 0
+gettimeofday({1396528219, 425369}, NULL) = 0
+stat("/etc/grid-security/certificates/2eb756e6.r1", 0x7f6993ff8fd0) = -1 ENOENT (No such file or directory)
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+gettimeofday({1396528219, 426382}, NULL) = 0
+gettimeofday({1396528219, 426429}, NULL) = 0
+stat("/etc/grid-security/certificates/2eb756e6.signing_policy", {st_mode=S_IFREG|0644, st_size=284, ...}) = 0
+open("/etc/grid-security/certificates/2eb756e6.signing_policy", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=284, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+fstat(11, {st_mode=S_IFREG|0644, st_size=284, ...}) = 0
+lseek(11, 0, SEEK_SET)                  = 0
+read(11, "# @(#)$Id: d254cc30.signing_poli"..., 284) = 284
+lseek(11, 284, SEEK_SET)                = 284
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+gettimeofday({1396528219, 427504}, NULL) = 0
+gettimeofday({1396528219, 427547}, NULL) = 0
+stat("/etc/grid-security/certificates/b2a87ac7.r0", {st_mode=S_IFREG|0644, st_size=20934, ...}) = 0
+open("/etc/grid-security/certificates/b2a87ac7.r0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=20934, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN X509 CRL-----\nMII8OjC"..., 4096) = 4096
+read(11, "zA3MTQxNjI3MTVaMAwwCgYD\nVR0VBAMK"..., 4096) = 4096
+read(11, "oGA1UdFQQDCgEEMCkCCj3d\n2aEAAgAB5"..., 4096) = 4096
+read(11, "NMTQwMTE1MTExODAxWjAM\nMAoGA1UdFQ"..., 4096) = 4096
+read(11, "DDAKBgNVHRUEAwoBBDAp\nAgoq34ReAAI"..., 4096) = 4096
+read(11, "XN0P2Jhc2U/b2JqZWN0\nQ2xhc3M9Y1JM"..., 4096) = 454
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/b2a87ac7.r1", 0x7f6993ff8fd0) = -1 ENOENT (No such file or directory)
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/grid-security/certificates/b2a87ac7.0", {st_mode=S_IFREG|0644, st_size=2204, ...}) = 0
+open("/etc/grid-security/certificates/b2a87ac7.0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=2204, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN CERTIFICATE-----\nMIIG"..., 4096) = 2204
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/b2a87ac7.1", 0x7f6993ff8f70) = -1 ENOENT (No such file or directory)
+gettimeofday({1396528219, 441608}, NULL) = 0
+gettimeofday({1396528219, 441665}, NULL) = 0
+stat("/etc/grid-security/certificates/b2a87ac7.signing_policy", {st_mode=S_IFREG|0644, st_size=269, ...}) = 0
+open("/etc/grid-security/certificates/b2a87ac7.signing_policy", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=269, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+fstat(11, {st_mode=S_IFREG|0644, st_size=269, ...}) = 0
+lseek(11, 0, SEEK_SET)                  = 0
+read(11, "# @(#)$Id: 1d879c6c.signing_poli"..., 269) = 269
+lseek(11, 269, SEEK_SET)                = 269
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999997})
+recvfrom(8, "\26\3\1\0\r", 5, 0, NULL, NULL) = 5
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\r\0\0\5\2\1\2\0\0\16\0\0\0", 13, 0, NULL, NULL) = 13
+gettimeofday({1396528219, 444877}, NULL) = 0
+stat("/etc/grid-security/certificates/33eb0f86.0", {st_mode=S_IFREG|0644, st_size=1976, ...}) = 0
+open("/etc/grid-security/certificates/33eb0f86.0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=1976, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN CERTIFICATE-----\nMIIF"..., 4096) = 1976
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/33eb0f86.1", 0x7f6993ff9170) = -1 ENOENT (No such file or directory)
+gettimeofday({1396528219, 447519}, NULL) = 0
+gettimeofday({1396528219, 447560}, NULL) = 0
+gettimeofday({1396528219, 449868}, NULL) = 0
+gettimeofday({1396528219, 449937}, NULL) = 0
+gettimeofday({1396528219, 450221}, NULL) = 0
+gettimeofday({1396528219, 450258}, NULL) = 0
+gettimeofday({1396528219, 450706}, NULL) = 0
+gettimeofday({1396528219, 450752}, NULL) = 0
+gettimeofday({1396528219, 450883}, NULL) = 0
+gettimeofday({1396528219, 451034}, NULL) = 0
+gettimeofday({1396528219, 451737}, NULL) = 0
+select(9, NULL, [8], [8], {440, 0})     = 1 (out [8], left {439, 999997})
+sendto(8, "\26\3\1\36n\v\0\36j\0\36g\0\2\3250\202\2\3210\202\2:\240\3\2\1\2\2\2\5\272"..., 8260, 0, NULL, 0) = 8260
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 983422})
+recvfrom(8, "\24\3\1\0\1", 5, 0, NULL, NULL) = 5
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\1", 1, 0, NULL, NULL)     = 1
+gettimeofday({1396528219, 475906}, NULL) = 0
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\26\3\1\0000", 5, 0, NULL, NULL) = 5
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\250\31\352\2602\30\255ff\301\303\364;\324\"\325\201\212T\362\306Hm;:\301Q\215\210\206\366\271"..., 48, 0, NULL, NULL) = 48
+gettimeofday({1396528219, 476900}, NULL) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+select(9, NULL, [8], [8], {440, 0})     = 1 (out [8], left {439, 999998})
+sendto(8, "\27\3\1\0 =\306\236\260\265\247\237\3Ox[|\377tW\204\342\376L`\4\334\2167\222\254\217"..., 37, 0, NULL, 0) = 37
+gettimeofday({1396528219, 479730}, NULL) = 0
+select(9, NULL, [8], [8], {440, 0})     = 1 (out [8], left {439, 999998})
+sendto(8, "\27\3\1\3\320u&A\251\367n\336\276\362\240\3520~\267@b\360\270\\]\374\215\255\213\250\202\325"..., 981, 0, NULL, 0) = 981
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 932842})
+recvfrom(8, "\27\3\1\4@", 5, 0, NULL, NULL) = 5
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\315r{\36\325\220\242\fKMru\247.z\275c\260\216Y7P\305\307\331\313\346\352\256\320\265K"..., 1088, 0, NULL, NULL) = 1088
+shutdown(8, 2 /* send and receive */)   = 0
+close(8)                                = 0
+clock_gettime(CLOCK_MONOTONIC, {10540355, 399890507}) = 0
+gettimeofday({1396528219, 560978}, NULL) = 0
+gettimeofday({1396528219, 561610}, NULL) = 0
+stat("/etc/grid-security/hostcert.pem", 0x7f6993ff94f0) = -1 ENOENT (No such file or directory)
+stat("/usr/etc/hostcert.pem", 0x7f6993ff94f0) = -1 ENOENT (No such file or directory)
+geteuid()                               = 25133
+open("/etc/passwd", O_RDONLY|O_CLOEXEC) = 8
+fstat(8, {st_mode=S_IFREG|0644, st_size=1494, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(8, "root:x:0:0:root:/root:/bin/bash\n"..., 4096) = 1494
+close(8)                                = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/home/dirac", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+stat("/home/dirac/.globus/hostcert.pem", 0x7f6993ff94f0) = -1 ENOENT (No such file or directory)
+stat("/tmp/dirac/tmpoEHFBq", {st_mode=S_IFREG|0600, st_size=9738, ...}) = 0
+geteuid()                               = 25133
+open("/tmp/dirac/tmpoEHFBq", O_RDONLY)  = 8
+fstat(8, {st_mode=S_IFREG|0600, st_size=9738, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(8, "-----BEGIN CERTIFICATE-----\nMIIC"..., 4096) = 4096
+read(8, "eTYrOY0U5dAFON/q/TITDJVJyURKZi\nu"..., 4096) = 4096
+read(8, "OQ9XTI87oH8UDJ/h02hUI8YNjaJxrglr"..., 4096) = 1546
+read(8, "", 4096)                       = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+close(8)                                = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+gettimeofday({1396528219, 566863}, NULL) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+geteuid()                               = 25133
+open("/etc/passwd", O_RDONLY|O_CLOEXEC) = 8
+fstat(8, {st_mode=S_IFREG|0644, st_size=1494, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(8, "root:x:0:0:root:/root:/bin/bash\n"..., 4096) = 1494
+close(8)                                = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/home/dirac", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+stat("/home/dirac/.globus/certificates", 0x7f6993ff9530) = -1 ENOENT (No such file or directory)
+stat("/etc/grid-security/certificates", {st_mode=S_IFDIR|0755, st_size=53248, ...}) = 0
+socket(PF_NETLINK, SOCK_RAW, 0)         = 8
+bind(8, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(8, {sa_family=AF_NETLINK, pid=13655, groups=00000000}, [12]) = 0
+gettimeofday({1396528219, 605811}, NULL) = 0
+sendto(8, "\24\0\0\0\26\0\1\3[T=S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(8, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0[T=SW5\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 108
+recvmsg(8, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0[T=SW5\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(8, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0[T=SW5\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(8)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 8
+setsockopt(8, SOL_SOCKET, SO_SNDBUF, [65536], 4) = 0
+setsockopt(8, SOL_SOCKET, SO_RCVBUF, [65536], 4) = 0
+setsockopt(8, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+fcntl(8, F_GETFL)                       = 0x2 (flags O_RDWR)
+fcntl(8, F_SETFL, O_RDWR|O_NONBLOCK)    = 0
+connect(8, {sa_family=AF_INET, sin_port=htons(8443), sin_addr=inet_addr("134.158.109.245")}, 16) = -1 EINPROGRESS (Operation now in progress)
+select(9, NULL, [8], NULL, {440, 0})    = 1 (out [8], left {439, 999997})
+getsockopt(8, SOL_SOCKET, SO_ERROR, [0], [4]) = 0
+fcntl(8, F_GETFL)                       = 0x802 (flags O_RDWR|O_NONBLOCK)
+fcntl(8, F_SETFL, O_RDWR|O_NONBLOCK)    = 0
+getpeername(8, {sa_family=AF_INET, sin_port=htons(8443), sin_addr=inet_addr("134.158.109.245")}, [16]) = 0
+geteuid()                               = 25133
+open("/etc/passwd", O_RDONLY|O_CLOEXEC) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=1494, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "root:x:0:0:root:/root:/bin/bash\n"..., 4096) = 1494
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/home/dirac", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
+stat("/home/dirac/.globus/certificates", 0x7f6993ff94b0) = -1 ENOENT (No such file or directory)
+stat("/etc/grid-security/certificates", {st_mode=S_IFDIR|0755, st_size=53248, ...}) = 0
+gettimeofday({1396528219, 626440}, NULL) = 0
+gettimeofday({1396528219, 626681}, NULL) = 0
+select(9, NULL, [8], [8], {440, 0})     = 1 (out [8], left {439, 999997})
+sendto(8, "\26\3\1\1\2\1\0\0\376\3\3S=T[v\4\343\303\360\211\336\0048\210\"\33\32i\247\256F"..., 263, 0, NULL, 0) = 263
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 992537})
+recvfrom(8, "\26\3\1(\343", 5, 0, NULL, NULL) = 5
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\2\0\0M\3\1S=T[\327Eovz\314\36d\366\230\232n5%\230\250\270P\23&\213\223"..., 10467, 0, NULL, NULL) = 10467
+gettimeofday({1396528219, 635189}, NULL) = 0
+gettimeofday({1396528219, 635253}, NULL) = 0
+gettimeofday({1396528219, 635417}, NULL) = 0
+stat("/etc/grid-security/certificates/585d9326.0", {st_mode=S_IFREG|0644, st_size=1363, ...}) = 0
+open("/etc/grid-security/certificates/585d9326.0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=1363, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN CERTIFICATE-----\nMIID"..., 4096) = 1363
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/585d9326.1", 0x7f6993ff9060) = -1 ENOENT (No such file or directory)
+stat("/etc/grid-security/certificates/7022e3c4.0", {st_mode=S_IFREG|0644, st_size=1346, ...}) = 0
+open("/etc/grid-security/certificates/7022e3c4.0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=1346, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN CERTIFICATE-----\nMIID"..., 4096) = 1346
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/7022e3c4.1", 0x7f6993ff9060) = -1 ENOENT (No such file or directory)
+stat("/etc/grid-security/certificates/727146a8.0", {st_mode=S_IFREG|0644, st_size=1249, ...}) = 0
+open("/etc/grid-security/certificates/727146a8.0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=1249, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN CERTIFICATE-----\nMIID"..., 4096) = 1249
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/727146a8.1", 0x7f6993ff9060) = -1 ENOENT (No such file or directory)
+gettimeofday({1396528219, 657674}, NULL) = 0
+gettimeofday({1396528219, 657712}, NULL) = 0
+stat("/etc/grid-security/certificates/727146a8.r0", {st_mode=S_IFREG|0644, st_size=555, ...}) = 0
+open("/etc/grid-security/certificates/727146a8.r0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=555, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN X509 CRL-----\nMIIBcTB"..., 4096) = 555
+read(11, "", 4096)                      = 0
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/727146a8.r1", 0x7f6993ff8f10) = -1 ENOENT (No such file or directory)
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+gettimeofday({1396528219, 659172}, NULL) = 0
+gettimeofday({1396528219, 659217}, NULL) = 0
+gettimeofday({1396528219, 659667}, NULL) = 0
+gettimeofday({1396528219, 659794}, NULL) = 0
+stat("/etc/grid-security/certificates/727146a8.r1", 0x7f6993ff8f10) = -1 ENOENT (No such file or directory)
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+gettimeofday({1396528219, 663629}, NULL) = 0
+gettimeofday({1396528219, 663672}, NULL) = 0
+stat("/etc/grid-security/certificates/727146a8.signing_policy", {st_mode=S_IFREG|0644, st_size=192, ...}) = 0
+open("/etc/grid-security/certificates/727146a8.signing_policy", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=192, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+fstat(11, {st_mode=S_IFREG|0644, st_size=192, ...}) = 0
+lseek(11, 0, SEEK_SET)                  = 0
+read(11, "# EACL French CA, project level:"..., 192) = 192
+lseek(11, 192, SEEK_SET)                = 192
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+gettimeofday({1396528219, 670487}, NULL) = 0
+gettimeofday({1396528219, 670556}, NULL) = 0
+stat("/etc/grid-security/certificates/7022e3c4.r0", {st_mode=S_IFREG|0644, st_size=563, ...}) = 0
+open("/etc/grid-security/certificates/7022e3c4.r0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=563, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN X509 CRL-----\nMIIBeTB"..., 4096) = 563
+read(11, "", 4096)                      = 0
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/7022e3c4.r1", 0x7f6993ff8f10) = -1 ENOENT (No such file or directory)
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+gettimeofday({1396528219, 672095}, NULL) = 0
+gettimeofday({1396528219, 672132}, NULL) = 0
+stat("/etc/grid-security/certificates/7022e3c4.signing_policy", {st_mode=S_IFREG|0644, st_size=211, ...}) = 0
+open("/etc/grid-security/certificates/7022e3c4.signing_policy", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=211, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+fstat(11, {st_mode=S_IFREG|0644, st_size=211, ...}) = 0
+lseek(11, 0, SEEK_SET)                  = 0
+read(11, "# EACL French CA, project level:"..., 211) = 211
+lseek(11, 211, SEEK_SET)                = 211
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+gettimeofday({1396528219, 673137}, NULL) = 0
+gettimeofday({1396528219, 673176}, NULL) = 0
+stat("/etc/grid-security/certificates/585d9326.r0", {st_mode=S_IFREG|0644, st_size=2302, ...}) = 0
+open("/etc/grid-security/certificates/585d9326.r0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=2302, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN X509 CRL-----\nMIIGezC"..., 4096) = 2302
+read(11, "", 4096)                      = 0
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/585d9326.r1", 0x7f6993ff8f10) = -1 ENOENT (No such file or directory)
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+gettimeofday({1396528219, 675495}, NULL) = 0
+gettimeofday({1396528219, 675648}, NULL) = 0
+stat("/etc/grid-security/certificates/585d9326.signing_policy", {st_mode=S_IFREG|0644, st_size=207, ...}) = 0
+open("/etc/grid-security/certificates/585d9326.signing_policy", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=207, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+fstat(11, {st_mode=S_IFREG|0644, st_size=207, ...}) = 0
+lseek(11, 0, SEEK_SET)                  = 0
+read(11, "# EACL French CA, CNRS2 GRID-FR\n"..., 207) = 207
+lseek(11, 207, SEEK_SET)                = 207
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/33eb0f86.0", {st_mode=S_IFREG|0644, st_size=1976, ...}) = 0
+open("/etc/grid-security/certificates/33eb0f86.0", O_RDONLY) = 11
+fstat(11, {st_mode=S_IFREG|0644, st_size=1976, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f69ad06c000
+read(11, "-----BEGIN CERTIFICATE-----\nMIIF"..., 4096) = 1976
+read(11, "", 4096)                      = 0
+close(11)                               = 0
+munmap(0x7f69ad06c000, 4096)            = 0
+stat("/etc/grid-security/certificates/33eb0f86.1", 0x7f6993ff90b0) = -1 ENOENT (No such file or directory)
+gettimeofday({1396528219, 693731}, NULL) = 0
+gettimeofday({1396528219, 693771}, NULL) = 0
+gettimeofday({1396528219, 694110}, NULL) = 0
+gettimeofday({1396528219, 694148}, NULL) = 0
+gettimeofday({1396528219, 695847}, NULL) = 0
+gettimeofday({1396528219, 695902}, NULL) = 0
+gettimeofday({1396528219, 696066}, NULL) = 0
+gettimeofday({1396528219, 696104}, NULL) = 0
+gettimeofday({1396528219, 697056}, NULL) = 0
+gettimeofday({1396528219, 697114}, NULL) = 0
+gettimeofday({1396528219, 697883}, NULL) = 0
+select(9, NULL, [8], [8], {440, 0})     = 1 (out [8], left {439, 999997})
+sendto(8, "\26\3\1\36n\v\0\36j\0\36g\0\2\3250\202\2\3210\202\2:\240\3\2\1\2\2\2\5\272"..., 8132, 0, NULL, 0) = 8132
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 963093})
+recvfrom(8, "\24\3\1\0\1", 5, 0, NULL, NULL) = 5
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\1", 1, 0, NULL, NULL)     = 1
+gettimeofday({1396528219, 750778}, NULL) = 0
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\26\3\1\0000", 5, 0, NULL, NULL) = 5
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\272*\2422\203\256\317\34\247\302\207|g3!\316\303\36J\26\n0\273 u]\25f\25_\16\236"..., 48, 0, NULL, NULL) = 48
+gettimeofday({1396528219, 769683}, NULL) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+stat("/etc/localtime", {st_mode=S_IFREG|0644, st_size=1892, ...}) = 0
+select(9, NULL, [8], [8], {440, 0})     = 1 (out [8], left {439, 999998})
+sendto(8, "\27\3\1\0 \301Jk5\f\fs\244\252\n\307\307+W\367\371jb9a>\221\335\236\251\v\344"..., 37, 0, NULL, 0) = 37
+gettimeofday({1396528219, 796783}, NULL) = 0
+select(9, NULL, [8], [8], {440, 0})     = 1 (out [8], left {439, 999998})
+sendto(8, "\27\3\1\3\260*N\200\373\336z\22\337\315\16\357M\17\345\235\31\301P\311\224j\243\273[(\257\317"..., 949, 0, NULL, 0) = 949
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 987801})
+recvfrom(8, "\27\3\1\0\220", 5, 0, NULL, NULL) = 5
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "p\337_\242S\345~\246\315q\275\34o\232\373\200*\1\3564\346\367\22\327.\355f~\0RK\4"..., 144, 0, NULL, NULL) = 144
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\27\3\1\4\220", 5, 0, NULL, NULL) = 5
+select(9, [8], NULL, [8], {440, 0})     = 1 (in [8], left {439, 999998})
+recvfrom(8, "\347\244)\204\271\257 \260D\362t'x3\7fa\0\2\202\270l1YG\211\355h\307O\30\202"..., 1168, 0, NULL, NULL) = 1168
+shutdown(8, 2 /* send and receive */)   = 0
+close(8)                                = 0
+write(10, "ds2:OKb1s5:Valueds2:OKb1s5:Value"..., 42) = 42
+close(10)                               = 0
+exit_group(0)                           = ?
+Process 13655 detached
