@@ -43,6 +43,7 @@ act s_getQueueSize, r_getQueueSize, getQueueSize:Nat;
 act s_getRequest, r_getRequest, getRequest:Task;
 
 act blah,RequestExecutingAgent_return;
+act createProcessPool;
 
 proc RequestExecutingAgent_mem(__requestsPerCycle:Nat, minProcess:Nat, maxProcess:Nat, queueSize:Nat) = 
       r_getRequestsPerCycle(__requestsPerCycle).
@@ -62,15 +63,21 @@ proc RequestExecutingAgent_mem(__requestsPerCycle:Nat, minProcess:Nat, maxProces
 % todo CreateProcessPool
 proc RequestExecutingAgent = RequestExecutingAgent_execute(0) || RequestExecutingAgent_mem(10,1,8,10) ;
 
+proc processPoolMethod = 
+%   sum initialized:Bool.(initialized==false)->
+%       (ProcessPool_mem(1,8,10,[],false, true) || CreateProcessPool 
+%       ) <> 
+return;
 
 proc RequestExecutingAgent_execute(taskCounter:Nat) =
+    processPoolMethod.
     sum requestsPerCycle:Nat.s_getRequestsPerCycle(requestsPerCycle).
       (taskCounter<requestsPerCycle) -> (
 	 sum newTask:Task.s_getRequest(newTask)
 	.RequestExecutingAgent_execute(taskCounter+1)
 	) <> RequestExecutingAgent_return;
     
-
+proc CreateProcessPool = createProcessPool;
 %% creates tasks....
 proc RequestClient = 
     r_getRequest(task(1,true,10, LogUpload));
@@ -258,7 +265,7 @@ init block(  { r_getMaxSize, s_getMaxSize, r_getMinSize, s_getMinSize,
        RequestExecutingAgent || RequestClient ||
        
        %% ==== ProcessPool stuff
-%         ProcessPool_mem(1,8,10,[],false) || __prListLock || 
+%        ProcessPool || ProcessPool_mem(1,8,10,[],false) || __prListLock || 
 
 	% __pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool
         Queues_mem([task(1,true,10, RegisterFile),task(2,true,10, RemoveFile)],[],false)  || 
