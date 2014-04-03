@@ -1,0 +1,261 @@
+(gdb) info threads
+  3 Thread 0x7fdfcd525700 (LWP 2404)  0x0000003124a0d930 in sem_wait () from /lib64/libpthread.so.0
+  2 Thread 0x7fdfcf217700 (LWP 2405)  0x0000003124a0d930 in sem_wait () from /lib64/libpthread.so.0
+* 1 Thread 0x7fdfce551700 (LWP 2403)  0x0000003124a0d930 in sem_wait () from /lib64/libpthread.so.0
+(gdb) thread 1
+[Switching to thread 1 (Thread 0x7fdfce551700 (LWP 2403))]#0  0x0000003124a0d930 in sem_wait () from /lib64/libpthread.so.0
+(gdb) bt
+#0  0x0000003124a0d930 in sem_wait () from /lib64/libpthread.so.0
+#1  0x00000000004cb228 in PyThread_acquire_lock (lock=0x7fdfc00050a0, waitflag=<value optimized out>) at Python/thread_pthread.h:349
+#2  0x0000000000499694 in PyEval_RestoreThread (tstate=0x232e5b0) at Python/ceval.c:353
+#3  0x00007fdfd0c6032f in floatsleep (self=<value optimized out>, args=<value optimized out>)
+    at /tmp/dirac/ExtDIRACiWm71c/Externals/Python-2.6/Python-2.6.6/Modules/timemodule.c:921
+#4  time_sleep (self=<value optimized out>, args=<value optimized out>) at /tmp/dirac/ExtDIRACiWm71c/Externals/Python-2.6/Python-2.6.6/Modules/timemodule.c:206
+#5  0x000000000049f1d1 in call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3750
+#6  PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#7  0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x7fdfd211e990, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=2, 
+    kws=0x7fdfc00961d8, kwcount=0, defs=0x7fdfd106f3e8, defcount=1, closure=0x0) at Python/ceval.c:3000
+#8  0x000000000049ed83 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3846
+#9  call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#10 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#11 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x7fdfd2123a08, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=2, 
+    kws=0x7fdfc008e050, kwcount=0, defs=0x7fdfd106f668, defcount=1, closure=0x0) at Python/ceval.c:3000
+#12 0x000000000049ed83 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3846
+#13 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#14 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#15 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#16 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#17 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#18 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#19 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#20 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#21 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x2022198, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=2, kws=0x0, 
+    kwcount=0, defs=0x0, defcount=0, closure=0x0) at Python/ceval.c:3000
+#22 0x00000000004f79d0 in function_call (func=0x2026578, arg=0x275be60, kw=0x0) at Objects/funcobject.c:524
+#23 0x0000000000418687 in PyObject_Call (func=0x2026578, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#24 0x00000000004212cf in instancemethod_call (func=0x2026578, arg=0x275be60, kw=0x0) at Objects/classobject.c:2579
+#25 0x0000000000418687 in PyObject_Call (func=0x202ed70, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#26 0x000000000046fbef in slot_tp_init (self=0x1adda50, args=0x1a55d90, kwds=0x0) at Objects/typeobject.c:5632
+#27 0x00000000004673af in type_call (type=<value optimized out>, args=0x1a55d90, kwds=0x0) at Objects/typeobject.c:742
+#28 0x0000000000418687 in PyObject_Call (func=0x1f713d0, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#29 0x000000000049e8f6 in do_call (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3968
+#30 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3773
+#31 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#32 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#33 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#34 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#35 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x1d93dc8, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=4, kws=0x0, 
+    kwcount=0, defs=0x0, defcount=0, closure=0x0) at Python/ceval.c:3000
+#36 0x00000000004f79d0 in function_call (func=0x1255cf8, arg=0x7fdfb92b0c00, kw=0x0) at Objects/funcobject.c:524
+#37 0x0000000000418687 in PyObject_Call (func=0x1255cf8, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#38 0x00000000004212cf in instancemethod_call (func=0x1255cf8, arg=0x7fdfb92b0c00, kw=0x0) at Objects/classobject.c:2579
+#39 0x0000000000418687 in PyObject_Call (func=0x7fdfc40f7b90, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#40 0x000000000046fbef in slot_tp_init (self=0x1cea210, args=0x7fdfc4101b90, kwds=0x0) at Objects/typeobject.c:5632
+#41 0x00000000004673af in type_call (type=<value optimized out>, args=0x7fdfc4101b90, kwds=0x0) at Objects/typeobject.c:742
+#42 0x0000000000418687 in PyObject_Call (func=0x23336e0, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#43 0x000000000049e8f6 in do_call (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3968
+#44 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3773
+#45 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#46 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#47 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#48 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+---Type <return> to continue, or q <return> to quit---
+#49 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#50 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#51 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#52 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#53 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#54 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#55 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x1255a80, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=1, 
+    kws=0x7fdfc00008f0, kwcount=0, defs=0x0, defcount=0, closure=0x0) at Python/ceval.c:3000
+#56 0x00000000004f7acd in function_call (func=0x1282410, arg=0x2030610, kw=0x206bc20) at Objects/funcobject.c:524
+#57 0x0000000000418687 in PyObject_Call (func=0x1282410, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#58 0x000000000049d8e9 in ext_do_call (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:4063
+#59 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2452
+#60 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#61 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#62 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#63 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#64 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#65 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#66 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x7fdfd21234e0, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=1, kws=0x0, 
+    kwcount=0, defs=0x0, defcount=0, closure=0x0) at Python/ceval.c:3000
+#67 0x00000000004f79d0 in function_call (func=0x7fdfd1069668, arg=0x1626f50, kw=0x0) at Objects/funcobject.c:524
+#68 0x0000000000418687 in PyObject_Call (func=0x7fdfd1069668, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#69 0x00000000004212cf in instancemethod_call (func=0x7fdfd1069668, arg=0x1626f50, kw=0x0) at Objects/classobject.c:2579
+#70 0x0000000000418687 in PyObject_Call (func=0x16bdc30, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#71 0x00000000004990b3 in PyEval_CallObjectWithKeywords (func=0x16bdc30, arg=0x7fdfd92ea050, kw=<value optimized out>) at Python/ceval.c:3619
+#72 0x00000000004cfd5a in t_bootstrap (boot_raw=<value optimized out>) at ./Modules/threadmodule.c:428
+#73 0x0000003124a079d1 in start_thread () from /lib64/libpthread.so.0
+#74 0x00000031242e8b6d in clone () from /lib64/libc.so.6
+
+
+------------
+(gdb) thread 2
+[Switching to thread 2 (Thread 0x7fdfcf217700 (LWP 2405))]#0  0x0000003124a0d930 in sem_wait () from /lib64/libpthread.so.0
+(gdb) bt
+#0  0x0000003124a0d930 in sem_wait () from /lib64/libpthread.so.0
+#1  0x00007fdfcf264d3a in locking_thread_callback (mode=<value optimized out>, type=<value optimized out>, file=<value optimized out>, line=<value optimized out>)
+    at /tmp/dirac/ExtDIRACiWm71c/Externals/pyGSI/src/ssl/thread_safe.c:117
+#2  0x00007fdfd2d3c89f in SSL_get_ex_data_X509_STORE_CTX_idx () from /opt/dirac/pro/Linux_x86_64_glibc-2.12/lib/libssl.so.1.0.0
+#3  0x00007fdfd2d3a965 in SSL_CTX_new () from /opt/dirac/pro/Linux_x86_64_glibc-2.12/lib/libssl.so.1.0.0
+#4  0x00007fdfcf2630bc in ssl_Context_New (i_method=<value optimized out>) at /tmp/dirac/ExtDIRACiWm71c/Externals/pyGSI/src/ssl/context.c:1641
+#5  0x00007fdfcf26054b in ssl_Context (spam=<value optimized out>, args=<value optimized out>) at /tmp/dirac/ExtDIRACiWm71c/Externals/pyGSI/src/ssl/ssl.c:38
+#6  0x000000000049f1d1 in call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3750
+#7  PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#8  0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#9  call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#10 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#11 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#12 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#13 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#14 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x7fdfcf8c63f0, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=2, kws=0x0, 
+    kwcount=0, defs=0x7fdfcf8c5f28, defcount=1, closure=0x0) at Python/ceval.c:3000
+#15 0x00000000004f79d0 in function_call (func=0x7fdfcf248e60, arg=0x1e149e0, kw=0x0) at Objects/funcobject.c:524
+#16 0x0000000000418687 in PyObject_Call (func=0x7fdfcf248e60, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#17 0x00000000004212cf in instancemethod_call (func=0x7fdfcf248e60, arg=0x1e149e0, kw=0x0) at Objects/classobject.c:2579
+#18 0x0000000000418687 in PyObject_Call (func=0x7fdfc40f7410, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#19 0x00000000004990b3 in PyEval_CallObjectWithKeywords (func=0x7fdfc40f7410, arg=0x1d08790, kw=<value optimized out>) at Python/ceval.c:3619
+#20 0x0000000000423556 in PyInstance_New (klass=<value optimized out>, arg=0x1d08790, kw=0x0) at Objects/classobject.c:568
+#21 0x0000000000418687 in PyObject_Call (func=0x7fdfcf241b30, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#22 0x000000000049e8f6 in do_call (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3968
+#23 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3773
+#24 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#25 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#26 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#27 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#28 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x7fdfcf8c2e40, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=2, 
+    kws=0x7fdfc407b920, kwcount=4, defs=0x0, defcount=0, closure=0x0) at Python/ceval.c:3000
+#29 0x00000000004f7acd in function_call (func=0x7fdfcf24a938, arg=0x7fdfb893d4d0, kw=0x7fdfc41be060) at Objects/funcobject.c:524
+#30 0x0000000000418687 in PyObject_Call (func=0x7fdfcf24a938, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#31 0x000000000049d8e9 in ext_do_call (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:4063
+#32 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2452
+#33 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#34 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#35 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#36 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#37 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#38 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#39 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#40 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#41 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#42 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#43 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#44 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#45 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x7fdfcf8a2a08, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=6, kws=0x0, 
+    kwcount=0, defs=0x0, defcount=0, closure=0x0) at Python/ceval.c:3000
+#46 0x00000000004f79d0 in function_call (func=0x7fdfcf24ec80, arg=0x7fdfb843ca78, kw=0x0) at Objects/funcobject.c:524
+#47 0x0000000000418687 in PyObject_Call (func=0x7fdfcf24ec80, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#48 0x00000000004212cf in instancemethod_call (func=0x7fdfcf24ec80, arg=0x7fdfb843ca78, kw=0x0) at Objects/classobject.c:2579
+#49 0x0000000000418687 in PyObject_Call (func=0x175d910, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+---Type <return> to continue, or q <return> to quit---
+#50 0x000000000042058d in instance_call (func=0x7fdfb85ae9e0, arg=0x7fdfc000acb0, kw=0x0) at Objects/classobject.c:2126
+#51 0x0000000000418687 in PyObject_Call (func=0x7fdfb85ae9e0, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#52 0x000000000049e8f6 in do_call (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3968
+#53 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3773
+#54 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#55 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x11ee4e0, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=9, 
+    kws=0x7fdfc4079f70, kwcount=0, defs=0x11e5d00, defcount=6, closure=0x0) at Python/ceval.c:3000
+#56 0x00000000004f7acd in function_call (func=0x11fe0c8, arg=0x1d91e50, kw=0x7fdfc40e3b30) at Objects/funcobject.c:524
+#57 0x0000000000418687 in PyObject_Call (func=0x11fe0c8, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#58 0x000000000049d8e9 in ext_do_call (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:4063
+#59 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2452
+#60 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x7fdfcfadc120, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=9, 
+    kws=0x7fdfc40e1dc0, kwcount=0, defs=0x0, defcount=0, closure=0x11fd248) at Python/ceval.c:3000
+#61 0x000000000049ed83 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3846
+#62 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#63 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#64 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x11ee558, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=3, 
+    kws=0x7fdfc402a5e8, kwcount=2, defs=0x11ea768, defcount=7, closure=0x0) at Python/ceval.c:3000
+#65 0x000000000049ed83 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3846
+#66 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#67 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#68 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#69 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#70 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#71 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x1282cd8, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=1, 
+    kws=0x7fdfc40298e0, kwcount=4, defs=0x0, defcount=0, closure=0x0) at Python/ceval.c:3000
+#72 0x00000000004f7acd in function_call (func=0x1632938, arg=0x204dad0, kw=0x7fdfc008c1d0) at Objects/funcobject.c:524
+#73 0x0000000000418687 in PyObject_Call (func=0x1632938, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#74 0x00000000004212cf in instancemethod_call (func=0x1632938, arg=0x204dad0, kw=0x7fdfc008c1d0) at Objects/classobject.c:2579
+#75 0x0000000000418687 in PyObject_Call (func=0x202eaf0, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#76 0x000000000046fbef in slot_tp_init (self=0x1d08950, args=0x7fdfd92ea050, kwds=0x7fdfc008c1d0) at Objects/typeobject.c:5632
+#77 0x00000000004673af in type_call (type=<value optimized out>, args=0x7fdfd92ea050, kwds=0x7fdfc008c1d0) at Objects/typeobject.c:742
+#78 0x0000000000418687 in PyObject_Call (func=0x24009b0, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#79 0x000000000049d8e9 in ext_do_call (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:4063
+#80 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2452
+#81 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#82 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#83 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#84 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x125d120, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=1, 
+    kws=0x7fdfc402fd90, kwcount=0, defs=0x0, defcount=0, closure=0x0) at Python/ceval.c:3000
+#85 0x00000000004f7acd in function_call (func=0x1255ed8, arg=0x1d87cd0, kw=0x7fdfc0007220) at Objects/funcobject.c:524
+#86 0x0000000000418687 in PyObject_Call (func=0x1255ed8, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#87 0x000000000049d8e9 in ext_do_call (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:4063
+#88 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2452
+#89 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#90 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#91 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#92 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#93 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#94 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#95 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x7fdfd21234e0, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=1, kws=0x0, 
+    kwcount=0, defs=0x0, defcount=0, closure=0x0) at Python/ceval.c:3000
+#96 0x00000000004f79d0 in function_call (func=0x7fdfd1069668, arg=0x1d87d10, kw=0x0) at Objects/funcobject.c:524
+#97 0x0000000000418687 in PyObject_Call (func=0x7fdfd1069668, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+---Type <return> to continue, or q <return> to quit---
+#98 0x00000000004212cf in instancemethod_call (func=0x7fdfd1069668, arg=0x1d87d10, kw=0x0) at Objects/classobject.c:2579
+#99 0x0000000000418687 in PyObject_Call (func=0x202ee10, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#100 0x00000000004990b3 in PyEval_CallObjectWithKeywords (func=0x202ee10, arg=0x7fdfd92ea050, kw=<value optimized out>) at Python/ceval.c:3619
+#101 0x00000000004cfd5a in t_bootstrap (boot_raw=<value optimized out>) at ./Modules/threadmodule.c:428
+#102 0x0000003124a079d1 in start_thread () from /lib64/libpthread.so.0
+#103 0x00000031242e8b6d in clone () from /lib64/libc.so.6
+
+===========
+(gdb) thread 3
+[Switching to thread 3 (Thread 0x7fdfcd525700 (LWP 2404))]#0  0x0000003124a0d930 in sem_wait () from /lib64/libpthread.so.0
+(gdb) bt
+#0  0x0000003124a0d930 in sem_wait () from /lib64/libpthread.so.0
+#1  0x00000000004cb228 in PyThread_acquire_lock (lock=0x7fdfc00050a0, waitflag=<value optimized out>) at Python/thread_pthread.h:349
+#2  0x0000000000499694 in PyEval_RestoreThread (tstate=0x7fdfc00903c0) at Python/ceval.c:353
+#3  0x00007fdfd0c6032f in floatsleep (self=<value optimized out>, args=<value optimized out>)
+    at /tmp/dirac/ExtDIRACiWm71c/Externals/Python-2.6/Python-2.6.6/Modules/timemodule.c:921
+#4  time_sleep (self=<value optimized out>, args=<value optimized out>) at /tmp/dirac/ExtDIRACiWm71c/Externals/Python-2.6/Python-2.6.6/Modules/timemodule.c:206
+#5  0x000000000049f1d1 in call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3750
+#6  PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#7  0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x1d93eb8, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=1, 
+    kws=0x7fdfc80074b0, kwcount=0, defs=0x0, defcount=0, closure=0x0) at Python/ceval.c:3000
+#8  0x00000000004f7acd in function_call (func=0x1255d70, arg=0x215af50, kw=0x1031090) at Objects/funcobject.c:524
+#9  0x0000000000418687 in PyObject_Call (func=0x1255d70, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#10 0x000000000049d8e9 in ext_do_call (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:4063
+#11 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2452
+#12 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#13 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#14 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#15 0x000000000049fac8 in fast_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3836
+#16 call_function (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:3771
+#17 PyEval_EvalFrameEx (f=<value optimized out>, throwflag=<value optimized out>) at Python/ceval.c:2412
+#18 0x00000000004a0bb0 in PyEval_EvalCodeEx (co=0x7fdfd21234e0, globals=<value optimized out>, locals=<value optimized out>, args=<value optimized out>, argcount=1, kws=0x0, 
+    kwcount=0, defs=0x0, defcount=0, closure=0x0) at Python/ceval.c:3000
+#19 0x00000000004f79d0 in function_call (func=0x7fdfd1069668, arg=0x7fdfc0009990, kw=0x0) at Objects/funcobject.c:524
+#20 0x0000000000418687 in PyObject_Call (func=0x7fdfd1069668, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#21 0x00000000004212cf in instancemethod_call (func=0x7fdfd1069668, arg=0x7fdfc0009990, kw=0x0) at Objects/classobject.c:2579
+#22 0x0000000000418687 in PyObject_Call (func=0x204ba00, arg=<value optimized out>, kw=<value optimized out>) at Objects/abstract.c:2492
+#23 0x00000000004990b3 in PyEval_CallObjectWithKeywords (func=0x204ba00, arg=0x7fdfd92ea050, kw=<value optimized out>) at Python/ceval.c:3619
+#24 0x00000000004cfd5a in t_bootstrap (boot_raw=<value optimized out>) at ./Modules/threadmodule.c:428
+#25 0x0000003124a079d1 in start_thread () from /lib64/libpthread.so.0
+#26 0x00000031242e8b6d in clone () from /lib64/libc.so.6
+
+
+3124a00000-3124a17000 r-xp 00000000 fd:01 313                            /lib64/libpthread-2.12.so
+
+0000003124a0d900 T sem_wait
+0000003124a0d978 t sem_wait_cleanup
+0000003124a0d990 T sem_trywait
+
+
+7fdfcf264d3a
+7fdfcf259000-7fdfcf268000 r-xp 00000000 fd:02 1705134                    /opt/dirac/versions/v7r14p30_1386054060/Linux_x86_64_glibc-2.12/lib/python2.6/site-packages/GSI-0.5.0-py2.6-linux-x86_64.egg/GSI/SSL.so
+
+
+
