@@ -4,46 +4,6 @@ sort Task = struct task(id:Nat,blocking:Bool,timeOut:Nat, taskFunction:TaskFunct
 sort Worker = struct W(id:Nat,isWorking:Bool);
 
 
-% 
-% map pendingQueueGet:List(Tasks)->List(Tuple);
-% map removeLinks':List(Tuple)#List(Nat)#Nat->List(Tuple);
-% var 
-% 	lt,listTuples:List(Tuple);
-% 	TaskIDs:List(Nat);
-% 	n:Nat;
-% 	tuple:Tuple;
-% eqn
-% 	removeLinks(listTuples,TaskIDs) = removeLinks'(listTuples,TaskIDs,0);
-% 	removeLinks'([],TaskIDs,n) = [];
-% 	t(tuple) in TaskIDs -> removeLinks'(tuple|>lt,TaskIDs,n) = p(t(tuple),r(tuple),false)|>removeLinks'(lt,TaskIDs,n+1);
-% 	!(t(tuple) in TaskIDs) -> removeLinks'(tuple|>lt,TaskIDs,n) = tuple|>removeLinks'(lt,TaskIDs,n+1);
-% 	
-	
-
-
-
-% map selectUnlinked:List(Tuple)->List(Nat);
-% map selectUnlinked':List(Tuple)#List(Nat)#Nat->List(Nat);
-% 
-% %helper transformation to select all the linked replica IDs
-% map selectLinked:List(Tuple)->List(Nat);
-% map selectLinked':List(Tuple)#Nat->List(Nat);
-% var 
-% 	lt,listTuples:List(Tuple);
-% 	linked:List(Nat);
-% 	n,m:Nat;
-% 	tuple:Tuple;
-% eqn
-% 	selectLinked(listTuples) = selectLinked'(listTuples,0);
-% 	selectLinked'([],n) = [];
-% 	link(tuple) -> selectLinked'(tuple|>lt,n) = r(tuple)|>selectLinked'(lt,n+1);
-% 	!link(tuple) -> selectLinked'(tuple|>lt,n) = selectLinked'(lt,n+1);
-% 
-% 	selectUnlinked(listTuples) = selectUnlinked'(listTuples,selectLinked(listTuples),0);
-% 	selectUnlinked'([],linked,m) = [];
-% 	!(link(tuple)) && !(r(tuple) in linked) -> selectUnlinked'(tuple|>lt,linked,m) = r(tuple)|>selectUnlinked'(lt,linked,m+1);
-% 	link(tuple) || r(tuple) in linked -> selectUnlinked'(tuple|>lt,linked,m) = selectUnlinked'(lt,linked,m+1);
-
 % ================================
 map mapGetNumWorkingProcesses: List(Worker) -> Nat;
 var
