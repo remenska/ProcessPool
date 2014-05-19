@@ -96,19 +96,22 @@ proc RequestClient =
 %%%%%%% ========== END RequestExecutingAgent 
 
     
+sort ProcessPoolTuple = struct processPoolTuple(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool);
+
+
 %%% ProcessPool memory
-proc ProcessPool_mem(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool) = 
-        r_getMaxSize(__maxSize).
-	  ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __workersDict, __draining)
+proc ProcessPool_mem(ppt:ProcessPoolTuple) = 
+        r_getMaxSize(__maxSize(ppt)).
+	  ProcessPool_mem(ppt)
         +
-        r_getMinSize(__minSize).
-        ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __workersDict, __draining)
+        r_getMinSize(__minSize(ppt)).
+        ProcessPool_mem(ppt)
 	+
-	r_getNumWorkingProcesses(mapGetNumWorkingProcesses(__workersDict)).
-	ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __workersDict, __draining)
+	r_getNumWorkingProcesses(mapGetNumWorkingProcesses(__workersDict(ppt))).
+	ProcessPool_mem(ppt)
 	+
-	r_getNumIdleProcesses(mapGetNumIdleProcesses(__workersDict)).
-	ProcessPool_mem(__minSize, __maxSize, __maxQueuedRequests, __workersDict, __draining)
+	r_getNumIdleProcesses(mapGetNumIdleProcesses(__workersDict(ppt))).
+	ProcessPool_mem(ppt)
 ;
 
 proc ProcessPool = Proc_getNumWorkingProcesses.Proc_getNumIdleProcesses.ProcessPool;
@@ -192,7 +195,7 @@ proc WatchdogThread(wpid:Nat, wdtid:Nat) = doSomethingWatchdog.WatchdogThread(wp
 
 proc ProcessThread(wpid:Nat, ptid:Nat)= runProcessThread(wpid,ptid).processTask;
 
-proc WorkingProcess(wpid:Nat) = WorkingProcess_start(wpid) || WorkingProcess_mem(1,false,0,1,1,None);
+proc WorkingProcess(wpid:Nat) = WorkingProcess_start(wpid) || WorkingProcess_mem(wpid,false,0,1,1,None);
 
 %WorkingProcess_start(wpid:Nat) = s_runWatchdogThread(wpid, 1);
 proc WorkingProcess_start(wpid:Nat) = runWorkingProcess.WatchdogThread(wpid, 1) || % TODO: like this or with s_runWatchdogThread ?
@@ -267,7 +270,8 @@ init allow(  { getMaxSize, getMinSize,
 	  getMinProcess,
 	  getMaxProcess,
 	  getQueueSize,
-	  r_getRequest
+	  r_getRequest,
+	  return
 	  },
        comm( { r_getMaxSize|s_getMaxSize->getMaxSize,
         r_getMinSize | s_getMinSize -> getMinSize,
@@ -300,14 +304,15 @@ init allow(  { getMaxSize, getMinSize,
        RequestExecutingAgent || RequestClient ||
        
        %% ==== ProcessPool stuff
-        ProcessPool || ProcessPool_mem(1,8,10,[W(1,false),W(2,false),W(3,false)],false) || __prListLock || 
+        ProcessPool || ProcessPool_mem(processPoolTuple(1,8,10,[W(1,false),W(2,false),W(3,false)],false)) || __prListLock || 
+% TODO: WorkingProcess memories are not contained (linkedt) to the ProcessPool memory
 
 % 	__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool
         Queues_mem([task(1,true,10, RegisterFile),task(2,true,10, RemoveFile)],[],false)  || 
         ProcessPool || %% TODO: Enable again
         %% === WorkingProcess stuff
 % 	wpid:Nat, __working:Bool,__taskCounter:Nat,__watchdogThread:Nat, __processThread:Nat,task:Task
-         WorkingProcess(1)
+         WorkingProcess(1) || WorkingProcess(2)
      ));
      
      
