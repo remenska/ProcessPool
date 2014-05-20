@@ -3,6 +3,11 @@ sort TaskFunction = struct RegisterFile | RemoveFile | LogUpload;
 sort Task = struct task(id:Nat,blocking:Bool,timeOut:Nat, taskFunction:TaskFunction) | None;
 sort Worker = struct W(id:Nat,isWorking:Bool);
 
+%Error while exploring state space: Expression !(0 < #tail([])) does not rewrite to true or false in the condition 
+%if(e7_WorkingProcess_while2, if(e6_WorkingProcess_while2, s10_WorkingProcess_while2 == 14 && !(!stopEvent_WorkingProcess_while2 &&
+% #__pendingQueue_Queues_mem > 0), s10_WorkingProcess_while2 == 14 && !stopEvent_WorkingProcess_while2 && #__pendingQueue_Queues_mem > 0), 
+%if(e6_WorkingProcess_while2, s10...
+% This is because "Note that the head and tail of an empty list are undefined, so that mCRL2 will not further reduce the terms head([]) and tail([])"
 
 % ================================
 map mapGetNumWorkingProcesses: List(Worker) -> Nat;
@@ -27,6 +32,22 @@ eqn
     !(isWorking(el)) -> mapGetNumIdleProcesses(el|>listWorkers) = 1 + mapGetNumIdleProcesses(listWorkers);
 % =================================
 
+map mapSetWorking: Nat#Bool#List(Worker) -> List(Worker);
+var
+  listWorkers, updatedList:List(Worker);
+  el:Worker;
+  wpid,n:Nat;
+  isWorking:Bool;
+
+eqn
+    mapSetWorking(wpid, isWorking, []) = [];
+    (listWorkers!=[] && id(head(listWorkers))==wpid) ->  
+	mapSetWorking(wpid, isWorking, listWorkers) = W(wpid, isWorking)|> mapSetWorking(wpid, isWorking, tail(listWorkers));
+    (listWorkers!=[] && id(head(listWorkers))!=wpid) -> 
+	mapSetWorking(wpid, isWorking, listWorkers) = head(listWorkers)|> mapSetWorking(wpid, isWorking, tail(listWorkers));
+
+
+% =================================
 
 
 %% ============ ProcessPool
@@ -95,6 +116,10 @@ proc RequestClient =
 
 %%%%%%% ========== END RequestExecutingAgent 
 
+act c_s_getNumWorkingProcesses, c_r_getNumWorkingProcesses, c__getNumWorkingProcesses;
+act r_s_getNumWorkingProcesses, r_r_getNumWorkingProcesses, r__getNumWorkingProcesses:Nat;
+act c_s_getNumIdleProcesses, c_r_getNumIdleProcesses, c__getNumIdleProcesses;
+act r_s_getNumIdleProcesses, r_r_getNumIdleProcesses, r__getNumIdleProcesses:Nat; 
     
 sort ProcessPoolTuple = struct processPoolTuple(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool);
 
@@ -112,19 +137,34 @@ proc ProcessPool_mem(ppt:ProcessPoolTuple) =
 	+
 	r_getNumIdleProcesses(mapGetNumIdleProcesses(__workersDict(ppt))).
 	ProcessPool_mem(ppt)
+	+
+	sum wpid:Nat,working:Bool.r_set__working1(wpid, working). 
+       ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), mapSetWorking(wpid, working, __workersDict(ppt)), __draining(ppt)))
 ;
 
-proc ProcessPool = Proc_getNumWorkingProcesses.Proc_getNumIdleProcesses.ProcessPool;
+
+% proc ProcessPool = Proc_getNumWorkingProcesses.Proc_getNumIdleProcesses.ProcessPool;
+
+proc ProcessPool = c_s_getNumWorkingProcesses.sum numWorking:Nat.r_r_getNumWorkingProcesses(numWorking).ProcessPool;
+proc ProcessPool1 = c_s_getNumIdleProcesses.sum numIdle:Nat.r_r_getNumIdleProcesses(numIdle).ProcessPool1;
 
 proc Proc_getNumWorkingProcesses = 
+  c_r_getNumWorkingProcesses.
   s__prListLock_acquire. 
     sum wp:Nat.s_getNumWorkingProcesses(wp).
-  s__prListLock_release;
+  s__prListLock_release.
+  r_s_getNumWorkingProcesses(wp).
+Proc_getNumWorkingProcesses
+;
 
 proc Proc_getNumIdleProcesses = 
+  c_r_getNumIdleProcesses.
   s__prListLock_acquire. 
     sum wp:Nat.s_getNumIdleProcesses(wp).
-  s__prListLock_release;
+  s__prListLock_release.
+r_s_getNumIdleProcesses(wp).
+Proc_getNumIdleProcesses
+;
   
 %% ============ END ProcessPool
 
@@ -132,14 +172,15 @@ proc Proc_getNumIdleProcesses =
 act r_isWorking, s_isWorking, isWorking:Bool;
 act r_taskProcessed, s_taskProcessed, taskProcessed:Nat;
 act r_runWatchdogThread, s_runWatchdogThread, runWatchdogThread:Nat#Nat;
-act doSomethingWatchdog, doSomethingWorkingProcess;
-act r_set__working, s_set__working, set__working:Bool;
+act doSomethingWatchdog:Nat#Nat;
+act doSomethingWorkingProcess;
+act r_set__working, r_set__working1, s_set__working, set__working:Nat#Bool;
 act r_runProcessThread, s_runProcessThread, runProcessThread:Nat#Nat;
-act r_setTask, s_setTask, setTask:Task;
+act r_setTask, s_setTask, setTask:Nat#Task;
 act processTask, runWorkingProcess, createProcessThread, return;
-act r_increaseTaskCounter, s_increaseTaskCounter, increaseTaskCounter;
+act r_increaseTaskCounter, s_increaseTaskCounter, increaseTaskCounter:Nat;
 act r_getStopEvent, s_getStopEvent, getStopEvent:Bool;
-act r_clearTask, s_clearTask, clearTask;
+act r_clearTask, s_clearTask, clearTask:Nat;
 act r_joinProcessThread, s_joinProcessThread, joinProcessThread;
 act r___pendingQueueGet, s___pendingQueueGet, __pendingQueueGet:Task;
 act r___resultsQueuePut, s___resultsQueuePut, __resultsQueuePut:Task;
@@ -149,8 +190,11 @@ act r_setStopEvent, s_setStopEvent, setStopEvent:Bool;
 %%% ============= START Memory for queueues, these are shared between the ProcessPool and the Workers, this is how they communicate
 
 proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool) =   
-   r___pendingQueueGet(head(__pendingQueue)).
+   (__pendingQueue!=[])-> r___pendingQueueGet(head(__pendingQueue)). 
     Queues_mem(tail(__pendingQueue), __resultsQueue, __stopEvent)
+  +
+  (__pendingQueue==[])-> r___pendingQueueGet(None). 
+    Queues_mem(__pendingQueue, __resultsQueue, __stopEvent)
    + 
    sum newTask:Task.r___resultsQueuePut(newTask).
     Queues_mem(__pendingQueue, __resultsQueue<|newTask, __stopEvent) 
@@ -158,7 +202,7 @@ proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:
     r___pendingQueueSize(#__pendingQueue).
     Queues_mem(__pendingQueue, __resultsQueue, __stopEvent) 
       +
-     r_getStopEvent(__stopEvent).
+     r_getStopEvent(__stopEvent). % TODO: this belongs to Agent, right? it's just passed to WorkingProcess
     Queues_mem(__pendingQueue, __resultsQueue, __stopEvent)
       +
     sum newStopEvent:Bool.r_setStopEvent(newStopEvent).
@@ -178,20 +222,20 @@ proc WorkingProcess_mem(wpid:Nat, __working:Bool,__taskCounter:Nat,__watchdogThr
       r_taskProcessed(__taskCounter).
       WorkingProcess_mem(wpid, __working, __taskCounter, __watchdogThread, __processThread, task)
     +
-      sum working:Bool.r_set__working(working). 
+       sum working:Bool.r_set__working(wpid, working). 
        WorkingProcess_mem(wpid, working, __taskCounter, __watchdogThread, __processThread, task)
     +
-      sum newTask:Task.r_setTask(newTask).
+      sum newTask:Task.r_setTask(wpid, newTask).
      WorkingProcess_mem(wpid, __working, __taskCounter, __watchdogThread, __processThread, newTask)
     +
-      r_increaseTaskCounter.
+      r_increaseTaskCounter(wpid).
      WorkingProcess_mem(wpid, __working, (__taskCounter+1), __watchdogThread, __processThread, task)
     + 
-     r_clearTask.
+     r_clearTask(wpid).
     WorkingProcess_mem(wpid, __working, __taskCounter, __watchdogThread, __processThread, None)
 ;
 
-proc WatchdogThread(wpid:Nat, wdtid:Nat) = doSomethingWatchdog.WatchdogThread(wpid,wdtid);  %% TODO: change if os.getppid() == 1:
+proc WatchdogThread(wpid:Nat, wdtid:Nat) = doSomethingWatchdog(wpid,wdtid).WatchdogThread(wpid,wdtid);  %% TODO: change if os.getppid() == 1:
 
 proc ProcessThread(wpid:Nat, ptid:Nat)= runProcessThread(wpid,ptid).processTask;
 
@@ -205,16 +249,16 @@ proc WorkingProcess_start(wpid:Nat) = runWorkingProcess.WatchdogThread(wpid, 1) 
 proc WorkingProcess_while(wpid:Nat) = 
 			sum stopEvent:Bool.s_getStopEvent(stopEvent).sum pqSize:Nat.s___pendingQueueSize(pqSize).
 				(!stopEvent && pqSize>0) -> (
-					  s_clearTask.
-					  s_set__working(true).
-					  sum task:Task.s___pendingQueueGet(task). 
-					  s_setTask(task). 
+					  s_clearTask(wpid).
+					  s_set__working(wpid, true).
+					  sum task:Task.s___pendingQueueGet(task). %TODO: missing if task==None
+					  s_setTask(wpid, task). 
 					  ProcessThread(wpid,1).			    
 					  joinProcessThread.
       %             if not self.task.taskResults() and not self.task.taskException():
 					  s___resultsQueuePut(task).
-					  s_increaseTaskCounter.
-					  s_set__working(false)
+					  s_increaseTaskCounter(wpid).
+					  s_set__working(wpid, false)
 				). WorkingProcess_while(wpid)
 				<> return 
 				;
@@ -271,7 +315,14 @@ init allow(  { getMaxSize, getMinSize,
 	  getMaxProcess,
 	  getQueueSize,
 	  r_getRequest,
-	  return
+	  return,
+	  c__getNumWorkingProcesses,
+	  r__getNumWorkingProcesses,
+	  c__getNumIdleProcesses,
+	  r__getNumIdleProcesses,
+	  runWorkingProcess,
+	  processTask,
+	  doSomethingWatchdog
 	  },
        comm( { r_getMaxSize|s_getMaxSize->getMaxSize,
         r_getMinSize | s_getMinSize -> getMinSize,
@@ -282,7 +333,7 @@ init allow(  { getMaxSize, getMinSize,
         s_isWorking | r_isWorking -> isWorking,
         s_taskProcessed | r_taskProcessed -> taskProcessed,
         s_runWatchdogThread | r_runWatchdogThread -> runWatchdogThread,
-	s_set__working | r_set__working -> set__working,
+	s_set__working | r_set__working | r_set__working1 -> set__working,
 	r_setTask | s_setTask -> setTask,
 	r_increaseTaskCounter | s_increaseTaskCounter -> increaseTaskCounter,
 	r_runProcessThread | s_runProcessThread -> runProcessThread,
@@ -297,22 +348,28 @@ init allow(  { getMaxSize, getMinSize,
 	s_getMinProcess | r_getMinProcess -> getMinProcess,
 	s_getMaxProcess | r_getMaxProcess -> getMaxProcess,
 	s_getQueueSize | r_getQueueSize -> getQueueSize,
-	s_getRequest | r_getRequest -> getRequest
-
+	s_getRequest | r_getRequest -> getRequest,
+	c_s_getNumWorkingProcesses | c_r_getNumWorkingProcesses -> c__getNumWorkingProcesses,
+	r_s_getNumWorkingProcesses | r_r_getNumWorkingProcesses -> r__getNumWorkingProcesses,
+	r_s_getNumIdleProcesses | r_r_getNumIdleProcesses -> r__getNumIdleProcesses,
+	c_s_getNumIdleProcesses | c_r_getNumIdleProcesses -> c__getNumIdleProcesses
+	
        },
        %% === Agent stuff
        RequestExecutingAgent || RequestClient ||
        
        %% ==== ProcessPool stuff
-        ProcessPool || ProcessPool_mem(processPoolTuple(1,8,10,[W(1,false),W(2,false),W(3,false)],false)) || __prListLock || 
+        ProcessPool || ProcessPool1 ||
+ProcessPool_mem(processPoolTuple(1,8,10,[W(1,false),W(2,false)],false)) || __prListLock || 
 % TODO: WorkingProcess memories are not contained (linkedt) to the ProcessPool memory
 
 % 	__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool
         Queues_mem([task(1,true,10, RegisterFile),task(2,true,10, RemoveFile)],[],false)  || 
-        ProcessPool || %% TODO: Enable again
+%         ProcessPool || %% TODO: Enable again
         %% === WorkingProcess stuff
 % 	wpid:Nat, __working:Bool,__taskCounter:Nat,__watchdogThread:Nat, __processThread:Nat,task:Task
-         WorkingProcess(1) || WorkingProcess(2)
+         WorkingProcess(1) || WorkingProcess(2) ||
+	 Proc_getNumWorkingProcesses || Proc_getNumIdleProcesses
      ));
      
      
