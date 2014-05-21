@@ -176,7 +176,7 @@ proc ProcessPool__spawnNeededWorkingProcesses_while =
 proc ProcessPool__spawnWorkingProcess = 
   % TODO do tuka sum: __spawnWorkingProcess
   __prListLock_acquire.
-  WorkingProcess(1). % TODO: how do I deal with this? also how to assign wpid (normally handed by the OS)
+%   WorkingProcess(1). % TODO: how do I deal with this? also how to assign wpid (normally handed by the OS)
   __prListLock_release
 ;
 
@@ -196,7 +196,9 @@ proc ProcessPool__cleanDeadProcesses =
 % proc CreateProcessPool = createProcessPool;
 %% creates tasks....
 proc RequestClient = 
-    r_getRequest(task(1,true,10, LogUpload))
+    (
+    r_getRequest(task(1,true,10, LogUpload)) + r_getRequest(task(1,true,10, RegisterFile)) + r_getRequest(task(2,true,10, RemoveFile))
+    )
 .RequestClient
 ;
 
@@ -507,7 +509,7 @@ init allow(  { getMaxSize, getMinSize,
 %          WorkingProcess(1) || WorkingProcess(2) ||
 
 % 	__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool
-        Queues_mem([task(1,true,10, RegisterFile),task(2,true,10, RemoveFile)],[],false) % TODO: move it to the ProcessPool init singleton thing, remove tasks.
+        Queues_mem([],[],false) % TODO: move it to the ProcessPool init singleton thing
 %         ProcessPool || %% TODO: Enable again
         %% === WorkingProcess stuff
 % 	wpid:Nat, __working:Bool,__taskCounter:Nat,__watchdogThread:Nat, __processThread:Nat,task:Task
