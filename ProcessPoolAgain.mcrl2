@@ -186,7 +186,7 @@ act s___cleanDeadProcesses, r___cleanDeadProcesses, __cleanDeadProcesses;
 proc ProcessPool__cleanDeadProcesses = 
   __prListLock_acquire.
   s___cleanDeadProcesses.
-  % TODO: how do I implement worker.isAlive()? for now let's make it "false" or random
+  % TODO: how do I implement worker.isAlive()? for now let's make it "false" or random, but it's an OS-level operation
   __prListLock_release
   ;
   
