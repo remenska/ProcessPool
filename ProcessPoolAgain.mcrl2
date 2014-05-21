@@ -38,7 +38,7 @@ map mapSetWorking: Nat#Bool#List(Worker) -> List(Worker);
 var
   listWorkers, updatedList:List(Worker);
   el:Worker;
-  wpid,n:Nat;
+  wpid:Nat;
   isWorking:Bool;
 
 eqn
@@ -48,6 +48,17 @@ eqn
     (listWorkers!=[] && id(head(listWorkers))!=wpid) -> 
 	mapSetWorking(wpid, isWorking, listWorkers) = head(listWorkers)|> mapSetWorking(wpid, isWorking, tail(listWorkers));
 
+
+% TODO: change, for now it's random? it's OS level. Maybe model an OS process
+map cleanDeadWorkers:List(Worker) -> List(Worker);
+var
+  listWorkers, updatedList:List(Worker);
+  el:Worker;
+  
+eqn
+  cleanDeadWorkers([]) = [];
+  (listWorkers!=[]) && (id(head(listWorkers))==2) -> cleanDeadWorkers(listWorkers) = cleanDeadWorkers(tail(listWorkers));
+  (listWorkers!=[]) && (id(head(listWorkers))!=2) -> cleanDeadWorkers(listWorkers) = head(listWorkers) |> cleanDeadWorkers(tail(listWorkers));
 
 % =================================
 % END ProcessPool maps
@@ -96,7 +107,9 @@ proc RequestExecutingAgent_mem(__requestsPerCycle:Nat, minProcess:Nat, maxProces
 proc RequestExecutingAgent = RequestExecutingAgent_mem(10,1,8,10) || processPoolSingleton || RequestExecutingAgent_execute(0);
 
 proc processPoolSingleton = 
-ProcessPool_mem(processPoolTuple(1,8,10,[W(1,false),W(2,false)],false)) || ProcessPool_createAndQueueTask
+ProcessPool_mem(processPoolTuple(1,8,10,[],false, false)) || ProcessPool_createAndQueueTask % TODO: here is missing: __spawnNeededWorkingProcesses, and Queues memory initialization
+% ProcessPool_mem(processPoolTuple(1,8,10,[W(1,false),W(2,false)],false)) || ProcessPool_createAndQueueTask
+
 ;
 
 % RequestExecutingAgent method
@@ -117,7 +130,7 @@ act s_getFreeSlots, r_getFreeSlots, getFreeSlots:Nat;
 act c_s_createAndQueueTask, c_r_createAndQueueTask, c__createAndQueueTask:Task;
 act r_s_createAndQueueTask, r_r_createAndQueueTask, r__createAndQueueTask:ReturnMessage;
 
-act time_sleep;    % temporary actions, TODO: rework them
+act time_sleep;   
 proc RequestExecutingAgent_execute_while(taskCounter:Nat, newTask:Task) = 
     sum freeSlots:Nat.s_getFreeSlots(freeSlots).
     (freeSlots==0) -> (
@@ -135,11 +148,50 @@ proc ProcessPool_createAndQueueTask =
 %       return S_ERROR( "Queue is full" ) % <-- since I'm not using the return value higher in the call hierarchy, maybe it's not that useful? 
     s___pendingQueuePut(newTask).
     s__prListLock_release.
-  % TODO do tuka sum: __spawnNeededWorkingProcesses
+    ProcessPool__spawnNeededWorkingProcesses.
+    
+    
     r_s_createAndQueueTask(S_OK)
 
 .ProcessPool_createAndQueueTask
 ;
+
+
+proc ProcessPool__spawnNeededWorkingProcesses = 
+    ProcessPool__cleanDeadProcesses.
+    sum __draining:Bool.s_getDraining(__draining).sum __stopEvent:Bool.s_getStopEvent(__stopEvent).
+  (__draining || __stopEvent) -> (return) <> 
+	(ProcessPool__spawnNeededWorkingProcesses_while)
+;
+
+proc ProcessPool__spawnNeededWorkingProcesses_while = 
+    sum workersDict:List(Worker).s_getWorkersDict(workersDict).sum __minSize:Nat.s_getMinSize(__minSize).
+    (#workersDict < __minSize) -> 
+    (
+    ProcessPool__spawnWorkingProcess
+    .ProcessPool__spawnNeededWorkingProcesses_while
+    ) <> return
+;
+
+proc ProcessPool__spawnWorkingProcess = 
+  % TODO do tuka sum: __spawnWorkingProcess
+  __prListLock_acquire.
+  WorkingProcess(1). % TODO: how do I deal with this? also how to assign wpid (normally handed by the OS)
+  __prListLock_release
+;
+
+act s___cleanDeadProcesses, r___cleanDeadProcesses, __cleanDeadProcesses;
+
+
+proc ProcessPool__cleanDeadProcesses = 
+  __prListLock_acquire.
+  s___cleanDeadProcesses.
+  % TODO: how do I implement worker.isAlive()? for now let's make it "false" or random
+  __prListLock_release
+  ;
+  
+
+
 
 % proc CreateProcessPool = createProcessPool;
 %% creates tasks....
@@ -157,11 +209,13 @@ act c_s_getNumWorkingProcesses, c_r_getNumWorkingProcesses, c__getNumWorkingProc
 act r_s_getNumWorkingProcesses, r_r_getNumWorkingProcesses, r__getNumWorkingProcesses:Nat;
 act c_s_getNumIdleProcesses, c_r_getNumIdleProcesses, c__getNumIdleProcesses;
 act r_s_getNumIdleProcesses, r_r_getNumIdleProcesses, r__getNumIdleProcesses:Nat; 
-    
-sort ProcessPoolTuple = struct processPoolTuple(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool);
+
+act r_getWorkersDict, s_getWorkersDict, getWorkersDict:List(Worker);
+sort ProcessPoolTuple = struct processPoolTuple(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool, __stopEvent:Bool);
 
 % BEGIN ProcessPool processes ========
 
+act r_getDraining, s_getDraining, getDraining:Bool;
 % ProcessPool memory
 proc ProcessPool_mem(ppt:ProcessPoolTuple) = 
         r_getMaxSize(__maxSize(ppt)).
@@ -177,10 +231,22 @@ proc ProcessPool_mem(ppt:ProcessPoolTuple) =
 	ProcessPool_mem(ppt)
 	+
 	sum wpid:Nat,working:Bool.r_set__working1(wpid, working). 
-       ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), mapSetWorking(wpid, working, __workersDict(ppt)), __draining(ppt)))
+       ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), mapSetWorking(wpid, working, __workersDict(ppt)), __draining(ppt), __stopEvent(ppt)))
 	+
 	r_getFreeSlots( max(0, Int2Nat(__maxSize(ppt) -  mapGetNumWorkingProcesses(__workersDict(ppt) )))).
       ProcessPool_mem(ppt)
+	+ 
+	r___cleanDeadProcesses.
+	ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), cleanDeadWorkers(__workersDict(ppt)), __draining(ppt), __stopEvent(ppt)))
+	+
+	r_getDraining(__draining(ppt)).
+	ProcessPool_mem(ppt)
+	+
+	r_getStopEvent(__stopEvent(ppt)).
+	ProcessPool_mem(ppt)
+	+
+	r_getWorkersDict(__workersDict(ppt)).
+	ProcessPool_mem(ppt)
 ;
 
 
@@ -228,7 +294,7 @@ act r_runProcessThread, s_runProcessThread, runProcessThread:Nat#Nat;
 act r_setTask, s_setTask, setTask:Nat#Task;
 act processTask, runWorkingProcess, createProcessThread, return;
 act r_increaseTaskCounter, s_increaseTaskCounter, increaseTaskCounter:Nat;
-act r_getStopEvent, s_getStopEvent, getStopEvent:Bool;
+act r_getStopEvent, s_getStopEvent, getStopEvent:Bool; 
 act r_clearTask, s_clearTask, clearTask:Nat;
 act r_joinProcessThread, s_joinProcessThread, joinProcessThread;
 act r___pendingQueueGet, s___pendingQueueGet, __pendingQueueGet:Task;
@@ -253,7 +319,7 @@ proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:
     r___pendingQueueSize(#__pendingQueue).
     Queues_mem(__pendingQueue, __resultsQueue, __stopEvent) 
       +
-     r_getStopEvent(__stopEvent). % TODO: this belongs to Agent, right? it's just passed to WorkingProcess
+     r_getStopEvent(__stopEvent). % TODO: this belongs to Agent, right? it's just passed to WorkingProcess, change it, remove from here!!!
     Queues_mem(__pendingQueue, __resultsQueue, __stopEvent)
       +
     sum newStopEvent:Bool.r_setStopEvent(newStopEvent).
@@ -386,7 +452,10 @@ init allow(  { getMaxSize, getMinSize,
 	  c__createAndQueueTask, 
 	  r__createAndQueueTask,
 	  time_sleep,
-	  __pendingQueuePut
+	  __pendingQueuePut,
+	  __cleanDeadProcesses,
+	  getDraining,
+	  getWorkersDict
 	  },
        comm( { r_getMaxSize|s_getMaxSize->getMaxSize,
         r_getMinSize | s_getMinSize -> getMinSize,
@@ -420,7 +489,10 @@ init allow(  { getMaxSize, getMinSize,
 	s_getFreeSlots | r_getFreeSlots -> getFreeSlots,
 	c_s_createAndQueueTask | c_r_createAndQueueTask -> c__createAndQueueTask,
 	r_s_createAndQueueTask | r_r_createAndQueueTask -> r__createAndQueueTask,
-	r___pendingQueuePut | s___pendingQueuePut ->  __pendingQueuePut
+	r___pendingQueuePut | s___pendingQueuePut ->  __pendingQueuePut,
+	r___cleanDeadProcesses | s___cleanDeadProcesses -> __cleanDeadProcesses,
+	r_getDraining | s_getDraining -> getDraining,
+	r_getWorkersDict | s_getWorkersDict -> getWorkersDict
        },
        %% === Agent stuff
        RequestExecutingAgent || RequestClient ||
@@ -435,7 +507,7 @@ init allow(  { getMaxSize, getMinSize,
 %          WorkingProcess(1) || WorkingProcess(2) ||
 
 % 	__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:Bool
-        Queues_mem([task(1,true,10, RegisterFile),task(2,true,10, RemoveFile)],[],false) 
+        Queues_mem([task(1,true,10, RegisterFile),task(2,true,10, RemoveFile)],[],false) % TODO: move it to the ProcessPool init singleton thing, remove tasks.
 %         ProcessPool || %% TODO: Enable again
         %% === WorkingProcess stuff
 % 	wpid:Nat, __working:Bool,__taskCounter:Nat,__watchdogThread:Nat, __processThread:Nat,task:Task
