@@ -1,7 +1,7 @@
 %%% START HERE
 sort TaskFunction = struct RegisterFile | RemoveFile | LogUpload;
 sort Task = struct task(id:Nat,done:Bool,timeOut:Nat, taskFunction:TaskFunction) | None; 
-sort Worker = struct W(id:Nat,isWorking:Bool);
+sort Worker = struct W(id:Nat,isWorking:Bool, isAlive:Bool);
 sort ReturnMessage = struct S_OK | S_ERROR;
 % FIXED Error while exploring state space: Expression !(0 < #tail([])) does not rewrite to true or false in the condition 
 %if(e7_WorkingProcess_while2, if(e6_WorkingProcess_while2, s10_WorkingProcess_while2 == 14 && !(!stopEvent_WorkingProcess_while2 &&
@@ -44,12 +44,11 @@ var
 eqn
     mapSetWorking(wpid, isWorking, []) = [];
     (listWorkers!=[] && id(head(listWorkers))==wpid) ->  
-	mapSetWorking(wpid, isWorking, listWorkers) = W(wpid, isWorking)|> mapSetWorking(wpid, isWorking, tail(listWorkers));
+	mapSetWorking(wpid, isWorking, listWorkers) = W(id(head(listWorkers)), isWorking,isAlive(head(listWorkers)))|> mapSetWorking(wpid, isWorking, tail(listWorkers));
     (listWorkers!=[] && id(head(listWorkers))!=wpid) -> 
 	mapSetWorking(wpid, isWorking, listWorkers) = head(listWorkers)|> mapSetWorking(wpid, isWorking, tail(listWorkers));
 
 
-% TODO: change, for now it's random? (well random==2) it's OS level. 
 map cleanDeadWorkers:List(Worker) -> List(Worker);
 var
   listWorkers, updatedList:List(Worker);
@@ -57,9 +56,21 @@ var
   
 eqn
   cleanDeadWorkers([]) = [];
-  (listWorkers!=[]) && (id(head(listWorkers))==2) -> cleanDeadWorkers(listWorkers) = cleanDeadWorkers(tail(listWorkers));
-  (listWorkers!=[]) && (id(head(listWorkers))!=2) -> cleanDeadWorkers(listWorkers) = head(listWorkers) |> cleanDeadWorkers(tail(listWorkers));
+  (listWorkers!=[]) && (!isAlive(head(listWorkers))) -> cleanDeadWorkers(listWorkers) = cleanDeadWorkers(tail(listWorkers));
+  (listWorkers!=[]) && (isAlive(head(listWorkers))) -> cleanDeadWorkers(listWorkers) = head(listWorkers) |> cleanDeadWorkers(tail(listWorkers));
+% =================================
 
+map mapSetDead: Nat#List(Worker) -> List(Worker);
+var
+  listWorkers, updatedList:List(Worker);
+  wpid:Nat;
+  
+eqn
+  mapSetDead(wpid, []) = [];
+  (listWorkers!=[] && id(head(listWorkers))==wpid) ->  
+      mapSetDead(wpid,listWorkers) = W(id(head(listWorkers)),isWorking(head(listWorkers)),false)|> mapSetDead(wpid, tail(listWorkers));
+  (listWorkers!=[] && id(head(listWorkers))!=wpid) ->  
+       mapSetDead(wpid,listWorkers) = head(listWorkers)|> mapSetDead(wpid, tail(listWorkers));
 % =================================
 % END ProcessPool maps
 % ================================
@@ -187,7 +198,7 @@ proc ProcessPool__spawnWorkingProcess =
     s__prListLock_acquire.
     sum newwpid:Nat.s__createWorkingProcess(newwpid).
 %   WorkingProcess(newwpid). % TODO: how do I deal with this? also how to assign wpid (normally handed by the OS)
-    s_addWorker(W(newwpid,false)).
+    s_addWorker(W(newwpid,false,true)).
     s__prListLock_release
 ;
 
@@ -197,7 +208,6 @@ act s___cleanDeadProcesses, r___cleanDeadProcesses, __cleanDeadProcesses;
 proc ProcessPool__cleanDeadProcesses = 
   s__prListLock_acquire.
   s___cleanDeadProcesses.
-  % TODO: how do I implement worker.isAlive()? for now let's make it "false" or random, but it's an OS-level operation
   s__prListLock_release
   ;
   
@@ -272,6 +282,9 @@ proc ProcessPool_mem(ppt:ProcessPoolTuple) =
 	+
 	sum newWorker:Worker.r_addWorker(newWorker).
         ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), __workersDict(ppt)<|newWorker, __draining(ppt), __stopEvent(ppt)))
+	+
+	sum wpid:Nat.r_setDead1(wpid).
+	ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), mapSetDead(wpid, __workersDict(ppt)), __draining(ppt), __stopEvent(ppt)))
 ;
 
 
@@ -331,8 +344,8 @@ proc ProcessPool_processResults =
 
 
 %% ============ START WorkingProcess
-act r_isWorking, s_isWorking, isWorking:Bool;
-act r_taskProcessed, s_taskProcessed, taskProcessed:Nat;
+act r_isWorking, s_isWorking, isWorking:Nat#Bool;
+act r_taskProcessed, s_taskProcessed, taskProcessed:Nat#Nat;
 act r_runWatchdogThread, s_runWatchdogThread, runWatchdogThread:Nat#Nat;
 act doSomethingWatchdog:Nat#Nat;
 act doSomethingWorkingProcess;
@@ -394,12 +407,13 @@ proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task),__stopEvent:
 
 sort WorkingProcessTuple = struct workingProcessTuple(wpid:Nat, __working:Bool,__taskCounter:Nat,__watchdogThread:Nat, __processThread:Nat,task:Task);
 
+act r_setDead, r_setDead1, s_setDead, setDead:Nat;
 
 proc WorkingProcess_mem(wpt:WorkingProcessTuple) = 
-      r_isWorking(__working(wpt)).
+      r_isWorking(wpid(wpt),__working(wpt)). 
       WorkingProcess_mem(wpt)
     +
-      r_taskProcessed(__taskCounter(wpt)). % tell how many tasks have been processed so far
+      r_taskProcessed(wpid(wpt),__taskCounter(wpt)). % tell how many tasks have been processed so far
       WorkingProcess_mem(wpt)
     +
        sum working:Bool.r_set__working(wpid(wpt), working). 
@@ -413,6 +427,8 @@ proc WorkingProcess_mem(wpt:WorkingProcessTuple) =
     + 
      r_clearTask(wpid(wpt)).
     WorkingProcess_mem(workingProcessTuple(wpid(wpt), __working(wpt), __taskCounter(wpt), __watchdogThread(wpt), __processThread(wpt), None))
+    +
+    r_setDead(wpid(wpt))
 ;
 
 proc WatchdogThread(wpid:Nat, wdtid:Nat) = doSomethingWatchdog(wpid,wdtid).WatchdogThread(wpid,wdtid);  %% TODO: change if os.getppid() == 1:
@@ -424,25 +440,26 @@ proc WorkingProcess(wpid:Nat) = WorkingProcess_start(wpid) || WorkingProcess_mem
 
 %WorkingProcess_start(wpid:Nat) = s_runWatchdogThread(wpid, 1);
 proc WorkingProcess_start(wpid:Nat) = runWorkingProcess.WatchdogThread(wpid, 1) || % TODO: like this or with s_runWatchdogThread ?
-				WorkingProcess_while(wpid)
+				WorkingProcess_while(wpid, 0)
 				;
 
-proc WorkingProcess_while(wpid:Nat) = 
-			sum stopEvent:Bool.s_getStopEvent(stopEvent).sum pqSize:Nat.s___pendingQueueSize(pqSize).
-				(!stopEvent && pqSize>0) -> (
-					  s_clearTask(wpid).
-					  s_set__working(wpid, true).
-					  sum taskFromQueue:Task.s___pendingQueueGet(taskFromQueue). %TODO: missing if task==None %TODO: swap steps with the one above?
-					  s_setTask(wpid, taskFromQueue). 
-					  ProcessThread(wpid,1). % TODO: this should be in parallel			    
-					  joinProcessThread.
+proc WorkingProcess_while(wpid:Nat, idleLoopCount:Nat) = 
+		sum stopEvent:Bool.s_getStopEvent(stopEvent). 
+		(idleLoopCount >= 10 || stopEvent) -> s_setDead(wpid).return <> ( 
+			sum taskFromQueue:Task.s___pendingQueueGet(taskFromQueue). 
+			(taskFromQueue!=None) -> (
+				 s_clearTask(wpid).
+				 s_set__working(wpid, true).
+				 s_setTask(wpid, taskFromQueue). 
+				 ProcessThread(wpid,1). % TODO: this should be in parallel			    
+				 joinProcessThread.
       %             if not self.task.taskResults() and not self.task.taskException():
-					  s___resultsQueuePut(task(id(taskFromQueue), done(taskFromQueue), timeOut(taskFromQueue), taskFunction(taskFromQueue))).
-					  s_increaseTaskCounter(wpid).
-					  s_set__working(wpid, false)
-				). WorkingProcess_while(wpid)
-				<> return 
-				;
+				 s___resultsQueuePut(task(id(taskFromQueue), true, timeOut(taskFromQueue), taskFunction(taskFromQueue))).
+				 s_increaseTaskCounter(wpid).
+				 s_set__working(wpid, false)   
+				). WorkingProcess_while(wpid, 0)
+				<> WorkingProcess_while(wpid, idleLoopCount+1) 
+		)		;
 				    
 % END WorkingProcess processes
 
@@ -493,7 +510,8 @@ init allow(  { getMaxSize, getMinSize,
 	  addWorker,
 	  internal,
 	  __resultsQueueGet,
-	  taskCallback
+	  taskCallback,
+	  setDead
 	  },
        comm( { r_getMaxSize|s_getMaxSize->getMaxSize,
         r_getMinSize | s_getMinSize -> getMinSize,
@@ -533,7 +551,8 @@ init allow(  { getMaxSize, getMinSize,
 	r_getWorkersDict | s_getWorkersDict -> getWorkersDict,
 	r__createWorkingProcess | s__createWorkingProcess -> createWorkingProcess,
 	r_addWorker | s_addWorker -> addWorker,
-	r___resultsQueueGet | s___resultsQueueGet -> __resultsQueueGet
+	r___resultsQueueGet | s___resultsQueueGet -> __resultsQueueGet,
+	r_setDead | r_setDead1 | s_setDead -> setDead
        },
        %% === Agent stuff
        RequestExecutingAgent || RequestClient ||
@@ -543,6 +562,8 @@ init allow(  { getMaxSize, getMinSize,
 	 ProcessPool_getNumWorkingProcesses || ProcessPool_getNumIdleProcesses
 
          || OS_ops(1)
+	 || WorkingProcess(1) 
+
      ));
      
      
