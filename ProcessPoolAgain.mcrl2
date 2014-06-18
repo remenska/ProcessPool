@@ -2,7 +2,7 @@
 sort TaskFunction = struct RegisterFile | RemoveFile | LogUpload;
 sort Task = struct task(id:Nat,done:Bool,timeOut:Nat, taskFunction:TaskFunction) | None; 
 sort Worker = struct W(id:Nat,isWorking:Bool, isAlive:Bool);
-sort ReturnMessage = struct S_OK | S_ERROR;
+sort ReturnMessage = struct S_OK | S_ERROR | S_FULL;
 % FIXED Error while exploring state space: Expression !(0 < #tail([])) does not rewrite to true or false in the condition 
 %if(e7_WorkingProcess_while2, if(e6_WorkingProcess_while2, s10_WorkingProcess_while2 == 14 && !(!stopEvent_WorkingProcess_while2 &&
 % #__pendingQueue_Queues_mem > 0), s10_WorkingProcess_while2 == 14 && !stopEvent_WorkingProcess_while2 && #__pendingQueue_Queues_mem > 0), 
@@ -112,14 +112,11 @@ proc RequestExecutingAgent_mem(__requestsPerCycle:Nat, minProcess:Nat, maxProces
  RequestExecutingAgent_mem(__requestsPerCycle, minProcess, maxProcess, queueSize) 
 ;
 
+proc RequestExecutingAgent = RequestExecutingAgent_mem(10,1,8,3) || processPoolSingleton || RequestExecutingAgent_execute(0);
 
-proc RequestExecutingAgent = RequestExecutingAgent_mem(10,1,8,10) || processPoolSingleton || RequestExecutingAgent_execute(0);
+proc processPoolSingleton = Queues_mem([],[], 3) ||
 
-proc processPoolSingleton = Queues_mem([],[]) ||
-ProcessPool_mem(processPoolTuple(1,8,10,[],false, false)) || ProcessPool__spawnNeededWorkingProcesses || ProcessPool_createAndQueueTask 
-
-% 
-;
+ProcessPool_mem(processPoolTuple(1,8,3,[],false, false)) || ProcessPool__spawnNeededWorkingProcesses || ProcessPool_createAndQueueTask || ProcessPool___backgroundProcess ;
 
 % RequestExecutingAgent method
 proc RequestExecutingAgent_execute(taskCounter:Nat) =
@@ -144,20 +141,20 @@ proc RequestExecutingAgent_execute_while(taskCounter:Nat, newTask:Task) =
     sum freeSlots:Nat.s_getFreeSlots(freeSlots).
     (freeSlots==0) -> (
     time_sleep.RequestExecutingAgent_execute_while(taskCounter, newTask) 
-    ) <> c_s_createAndQueueTask(newTask).sum retMsg:ReturnMessage.r_r_createAndQueueTask(retMsg)
+    ) <> c_s_createAndQueueTask(newTask).sum retMsg:ReturnMessage.r_r_createAndQueueTask(retMsg).
+	(retMsg!=S_OK) -> RequestExecutingAgent_execute_while(taskCounter,newTask) <> return % this is in case if not enqueue["OK"]: self.log.error( enqueue["Message"] )
 ;
 
 % ProcessPool method
 proc ProcessPool_createAndQueueTask = 
     sum newTask:Task.c_r_createAndQueueTask(newTask).
     s__prListLock_acquire.  
-% TODO  except Queue.Full:
-%       self.__prListLock.release()
-%       return S_ERROR( "Queue is full" ) % <-- since I'm not using the return value higher in the call hierarchy, maybe it's not that useful? 
     s___pendingQueuePut(newTask).
+    sum retMsg:ReturnMessage.r___pendingQueuePut_return(retMsg).
     s__prListLock_release.
-    ProcessPool__spawnNeededWorkingProcesses.
-    r_s_createAndQueueTask(S_OK)
+    ((retMsg==S_OK) ->
+    ProcessPool__spawnNeededWorkingProcesses <> internal
+    ).r_s_createAndQueueTask(retMsg)
 .ProcessPool_createAndQueueTask
 ;
 
@@ -212,7 +209,7 @@ proc ProcessPool__cleanDeadProcesses =
   ;
   
 act s__createWorkingProcess, r__createWorkingProcess, createWorkingProcess:Nat; % only on reply a parameter is sent (wpid for new WorkingProcess) 
-act r__isAlive, s__isAlive, isAlive:Bool;
+act r__isAlive, s__isAlive, isAlive:Bool; % TODO: s__isAlive is not used!!! should be somewhere
 proc OS_ops(counter:Nat) = 
    r__createWorkingProcess(counter).
     OS_ops(counter+1)
@@ -319,7 +316,7 @@ ProcessPool_getNumIdleProcesses
 ;
 
 act internal, taskCallback;
-% TODO: should be started somehow  in separate thread
+
 proc ProcessPool___backgroundProcess = 
   sum __draining:Bool.s_getDraining(__draining).
   (!__draining) -> 
@@ -362,6 +359,7 @@ act r_clearTask, s_clearTask, clearTask:Nat;
 act r_joinProcessThread, s_joinProcessThread, joinProcessThread;
 act r___pendingQueueGet, s___pendingQueueGet, __pendingQueueGet:Task;
 act r___pendingQueuePut, s___pendingQueuePut, __pendingQueuePut:Task;
+act r___pendingQueuePut_return, s___pendingQueuePut_return, __pendingQueuePut_return:ReturnMessage;
 
 act r___resultsQueuePut, s___resultsQueuePut, __resultsQueuePut:Task;
 act r___resultsQueueGet, s___resultsQueueGet, __resultsQueueGet:Task;
@@ -371,28 +369,30 @@ act r_setStopEvent, s_setStopEvent, setStopEvent:Bool;
 
 %%% ============= START Memory for queueues, these are shared between the ProcessPool and the Workers, this is how they communicate
 
-proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task)) =   
+proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task), __maxPendingQueue:Nat) =   
    (__pendingQueue!=[])-> r___pendingQueueGet(head(__pendingQueue)). 
-    Queues_mem(tail(__pendingQueue), __resultsQueue)
+    Queues_mem(tail(__pendingQueue), __resultsQueue, __maxPendingQueue)
   +
   (__pendingQueue==[])-> r___pendingQueueGet(None). 
-    Queues_mem(__pendingQueue, __resultsQueue)
+    Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue)
    + 
    sum newTask:Task.r___resultsQueuePut(newTask).
-    Queues_mem(__pendingQueue, __resultsQueue<|newTask) 
+    Queues_mem(__pendingQueue, __resultsQueue<|newTask, __maxPendingQueue) 
       +
     r___pendingQueueSize(#__pendingQueue).
-    Queues_mem(__pendingQueue, __resultsQueue) 
+    Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue) 
       +
     sum newTask:Task.r___pendingQueuePut(newTask).
-    Queues_mem(__pendingQueue<|newTask, __resultsQueue)
+    (__maxPendingQueue==#__pendingQueue) -> % raise an error (exception if queue is full 
+  (s___pendingQueuePut_return(S_FULL).Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue))  <> 
+    (s___pendingQueuePut_return(S_OK).Queues_mem(__pendingQueue<|newTask, __resultsQueue, __maxPendingQueue))
 
     +
-  (__resultsQueue==[])-> r___resultsQueueGet(None). 
-    Queues_mem(__pendingQueue, __resultsQueue)
+  (__resultsQueue==[])-> r___resultsQueueGet(None).  %TODO: check: does it block if there is nothing in the queue, or should I just return None?
+    Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue)
     +
    (__resultsQueue!=[])-> r___resultsQueueGet(head(__resultsQueue)). 
-    Queues_mem(__pendingQueue, tail(__resultsQueue))
+    Queues_mem(__pendingQueue, tail(__resultsQueue), __maxPendingQueue)
     
 ;
 
@@ -508,7 +508,9 @@ init allow(  { getMaxSize, getMinSize,
 	  internal,
 	  __resultsQueueGet,
 	  taskCallback,
-	  setDead
+	  setDead,
+	  __pendingQueuePut_return
+
 	  },
        comm( { r_getMaxSize|s_getMaxSize->getMaxSize,
         r_getMinSize | s_getMinSize -> getMinSize,
@@ -549,7 +551,8 @@ init allow(  { getMaxSize, getMinSize,
 	r__createWorkingProcess | s__createWorkingProcess -> createWorkingProcess,
 	r_addWorker | s_addWorker -> addWorker,
 	r___resultsQueueGet | s___resultsQueueGet -> __resultsQueueGet,
-	r_setDead | r_setDead1 | s_setDead -> setDead
+	r_setDead | r_setDead1 | s_setDead -> setDead,
+	r___pendingQueuePut_return | s___pendingQueuePut_return -> __pendingQueuePut_return
        },
        %% === Agent stuff
        RequestExecutingAgent || RequestClient ||
