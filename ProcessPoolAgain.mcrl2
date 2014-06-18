@@ -212,15 +212,11 @@ proc ProcessPool__cleanDeadProcesses =
   ;
   
 act s__createWorkingProcess, r__createWorkingProcess, createWorkingProcess:Nat; % only on reply a parameter is sent (wpid for new WorkingProcess) 
-act r__isAlive, s__isAlive, isAlive:Bool; % TODO: s__isAlive is not used!!! should be somewhere
+% act r__isAlive, s__isAlive, isAlive:Bool; 
 
 % keeps track of available WorkingProcess id's (those who are dead), assigns the dead ones back to newly created processes
 proc OS_ops( workerIDs:List(Nat)) = 
    r__createWorkingProcess(head(workerIDs)).OS_ops(tail(workerIDs)) 
-   +
-   r__isAlive(true).OS_ops(workerIDs)
-   +
-   r__isAlive(false).OS_ops(workerIDs)
    +
    sum deadWorkerID:Nat.r_setDead2(deadWorkerID).OS_ops(deadWorkerID|>workerIDs)
 ;
@@ -516,7 +512,7 @@ init allow(  { getMaxSize, getMinSize,
 	  getDraining,
 	  getWorkersDict,
 	  createWorkingProcess,
-	  isAlive,
+% 	  isAlive,
 	  addWorker,
 	  internal,
 	  __resultsQueueGet,
