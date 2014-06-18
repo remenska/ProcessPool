@@ -150,11 +150,12 @@ proc ProcessPool_createAndQueueTask =
     sum newTask:Task.c_r_createAndQueueTask(newTask).
     s__prListLock_acquire.  
     s___pendingQueuePut(newTask).
-    sum retMsg:ReturnMessage.r___pendingQueuePut_return(retMsg).
+%     sum retMsg:ReturnMessage.r___pendingQueuePut_return(retMsg). % EDITED: it will just block until there is space in the queue again, because blocking = True in the implementation
     s__prListLock_release.
-    ((retMsg==S_OK) ->
-    ProcessPool__spawnNeededWorkingProcesses <> internal
-    ).r_s_createAndQueueTask(retMsg)
+%     ((retMsg==S_OK) ->
+    ProcessPool__spawnNeededWorkingProcesses.
+%     ).
+    r_s_createAndQueueTask(S_OK)
 .ProcessPool_createAndQueueTask
 ;
 
@@ -197,7 +198,7 @@ proc ProcessPool__spawnWorkingProcess =
     s__prListLock_acquire.
     sum newwpid:Nat.s__createWorkingProcess(newwpid).
     s_activateWorkingProcess(newwpid).
-%   WorkingProcess(newwpid). % TODO: how do I deal with this? also how to assign wpid (normally handed by the OS)
+%   WorkingProcess(newwpid).
     s_addWorker(W(newwpid,false,true)).
     s__prListLock_release
 ;
@@ -332,13 +333,13 @@ proc ProcessPool_processResults =
   ((pqSize!=0) -> (
 		    ProcessPool__spawnNeededWorkingProcesses
 		    )
-  <> internal). sum resultsTask:Task.s___resultsQueueGet(resultsTask).
-    (resultsTask==None) -> ( 
-	return
-    )
-		<> (
+  <> internal). 
+  sum rqSize:Nat.s___resultsQueueSize(rqSize).
+  ((rqSize!=0) -> (
+  sum resultsTask:Task.s___resultsQueueGet(resultsTask).  
 		  taskCallback.ProcessPool_processResults
-		  )
+		
+   ) <> return )
 ;
 
 
@@ -361,12 +362,13 @@ act r_clearTask, s_clearTask, clearTask:Nat;
 act r_joinProcessThread, s_joinProcessThread, joinProcessThread;
 act r___pendingQueueGet, s___pendingQueueGet, __pendingQueueGet:Task;
 act r___pendingQueuePut, s___pendingQueuePut, __pendingQueuePut:Task;
-act r___pendingQueuePut_return, s___pendingQueuePut_return, __pendingQueuePut_return:ReturnMessage;
+% act r___pendingQueuePut_return, s___pendingQueuePut_return, __pendingQueuePut_return:ReturnMessage;
 
 act r___resultsQueuePut, s___resultsQueuePut, __resultsQueuePut:Task;
 act r___resultsQueueGet, s___resultsQueueGet, __resultsQueueGet:Task;
 
 act r___pendingQueueSize, s___pendingQueueSize, __pendingQueueSize:Nat;
+act r___resultsQueueSize, s___resultsQueueSize, ___resultsQueueSize:Nat;
 act r_setStopEvent, s_setStopEvent, setStopEvent:Bool;
 
 %%% ============= START Memory for queueues, these are shared between the ProcessPool and the Workers, this is how they communicate
@@ -384,15 +386,23 @@ proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task), __maxPendin
     r___pendingQueueSize(#__pendingQueue).
     Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue) 
       +
-    sum newTask:Task.r___pendingQueuePut(newTask).
-    (__maxPendingQueue==#__pendingQueue) -> % raise an error (exception if queue is full 
-  (s___pendingQueuePut_return(S_FULL).Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue))  <> 
-    (s___pendingQueuePut_return(S_OK).Queues_mem(__pendingQueue<|newTask, __resultsQueue, __maxPendingQueue))
-
+    r___resultsQueueSize(#__resultsQueue).
+    Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue) 
+      +
+   %  pendingQueue will block putting elements beyond the max, doesn't raise exception!!!! Because blocking = True in the implementation by default
+    (__maxPendingQueue> #__pendingQueue) -> 
+    sum newTask:Task.r___pendingQueuePut(newTask).Queues_mem(__pendingQueue<|newTask, __resultsQueue, __maxPendingQueue)
+    
+%  (s___pendingQueuePut_return(S_FULL).Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue))  <> 
+%    (s___pendingQueuePut_return(S_OK).Queues_mem(__pendingQueue<|newTask, __resultsQueue, __maxPendingQueue))
     +
-  (__resultsQueue==[])-> r___resultsQueueGet(None).  %TODO: check: does it block if there is nothing in the queue, or should I just return None?
-    Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue)
-    +
+    
+     % does it block if there is nothing in the queue, or should I just return None?
+ % CHECKED, IT'S BLOCKING, so just commented these below!!!!
+ 
+%  (__resultsQueue==[])-> r___resultsQueueGet(None).  
+%    Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue)
+%     +
    (__resultsQueue!=[])-> r___resultsQueueGet(head(__resultsQueue)). 
     Queues_mem(__pendingQueue, tail(__resultsQueue), __maxPendingQueue)
     
@@ -451,7 +461,7 @@ proc WorkingProcess_start(wpid:Nat) = r_activateWorkingProcess(wpid).
 
 proc WorkingProcess_while(wpid:Nat, idleLoopCount:Nat) = 
 		sum stopEvent:Bool.s_getStopEvent(stopEvent). 
-		(idleLoopCount >= 5 || stopEvent) -> s_setDead(wpid).return <> ( % I have set idleLoopCount to smaller value = 5 instead of 10
+		(idleLoopCount >= 5 || stopEvent) -> s_setDead(wpid).return <> ( % I have set idleLoopCount to smaller value = 5 instead of 10 )
 			sum taskFromQueue:Task.s___pendingQueueGet(taskFromQueue). 
 			(taskFromQueue!=None) -> (
 				 s_clearTask(wpid).
@@ -518,8 +528,9 @@ init allow(  { getMaxSize, getMinSize,
 	  __resultsQueueGet,
 	  taskCallback,
 	  setDead,
-	  __pendingQueuePut_return,
-	  activateWorkingProcess
+%	  __pendingQueuePut_return,
+	  activateWorkingProcess,
+	  ___resultsQueueSize
 
 	  },
        comm( { r_getMaxSize|s_getMaxSize->getMaxSize,
@@ -562,8 +573,9 @@ init allow(  { getMaxSize, getMinSize,
 	r_addWorker | s_addWorker -> addWorker,
 	r___resultsQueueGet | s___resultsQueueGet -> __resultsQueueGet,
 	r_setDead | r_setDead1 | r_setDead2 | s_setDead -> setDead,
-	r___pendingQueuePut_return | s___pendingQueuePut_return -> __pendingQueuePut_return,
-	s_activateWorkingProcess | r_activateWorkingProcess -> activateWorkingProcess
+%	r___pendingQueuePut_return | s___pendingQueuePut_return -> __pendingQueuePut_return,
+	s_activateWorkingProcess | r_activateWorkingProcess -> activateWorkingProcess,
+	r___resultsQueueSize | s___resultsQueueSize ->  ___resultsQueueSize
        },
        %% === Agent stuff
        RequestExecutingAgent || RequestClient ||
