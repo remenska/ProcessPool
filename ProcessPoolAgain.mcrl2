@@ -191,9 +191,12 @@ proc ProcessPool__spawnNeededWorkingProcesses_while1 =
 ;
 
 
+act s_activateWorkingProcess, r_activateWorkingProcess, activateWorkingProcess:Nat;
+
 proc ProcessPool__spawnWorkingProcess = 
     s__prListLock_acquire.
     sum newwpid:Nat.s__createWorkingProcess(newwpid).
+    s_activateWorkingProcess(newwpid).
 %   WorkingProcess(newwpid). % TODO: how do I deal with this? also how to assign wpid (normally handed by the OS)
     s_addWorker(W(newwpid,false,true)).
     s__prListLock_release
@@ -210,13 +213,16 @@ proc ProcessPool__cleanDeadProcesses =
   
 act s__createWorkingProcess, r__createWorkingProcess, createWorkingProcess:Nat; % only on reply a parameter is sent (wpid for new WorkingProcess) 
 act r__isAlive, s__isAlive, isAlive:Bool; % TODO: s__isAlive is not used!!! should be somewhere
-proc OS_ops(counter:Nat) = 
-   r__createWorkingProcess(counter).
-    OS_ops(counter+1)
+
+% keeps track of available WorkingProcess id's (those who are dead), assigns the dead ones back to newly created processes
+proc OS_ops( workerIDs:List(Nat)) = 
+   r__createWorkingProcess(head(workerIDs)).OS_ops(tail(workerIDs)) 
    +
-   r__isAlive(true).OS_ops(counter)
+   r__isAlive(true).OS_ops(workerIDs)
    +
-   r__isAlive(false).OS_ops(counter)
+   r__isAlive(false).OS_ops(workerIDs)
+   +
+   sum deadWorkerID:Nat.r_setDead2(deadWorkerID).OS_ops(deadWorkerID|>workerIDs)
 ;
 
 % proc CreateProcessPool = createProcessPool;
@@ -317,7 +323,7 @@ ProcessPool_getNumIdleProcesses
 
 act internal, taskCallback;
 
-proc ProcessPool___backgroundProcess = 
+proc ProcessPool___backgroundProcess =  % for daemonize
   sum __draining:Bool.s_getDraining(__draining).
   (!__draining) -> 
     (
@@ -331,7 +337,7 @@ proc ProcessPool_processResults =
 		    ProcessPool__spawnNeededWorkingProcesses
 		    )
   <> internal). sum resultsTask:Task.s___resultsQueueGet(resultsTask).
-    (resultsTask!=None) -> (
+    (resultsTask==None) -> ( 
 	return
     )
 		<> (
@@ -404,7 +410,7 @@ proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task), __maxPendin
 
 sort WorkingProcessTuple = struct workingProcessTuple(wpid:Nat, __working:Bool,__taskCounter:Nat,__watchdogThread:Nat, __processThread:Nat,task:Task);
 
-act r_setDead, r_setDead1, s_setDead, setDead:Nat;
+act r_setDead, r_setDead1, r_setDead2, s_setDead, setDead:Nat;
 
 proc WorkingProcess_mem(wpt:WorkingProcessTuple) = 
       r_isWorking(wpid(wpt),__working(wpt)). 
@@ -419,30 +425,37 @@ proc WorkingProcess_mem(wpt:WorkingProcessTuple) =
       sum newTask:Task.r_setTask(wpid(wpt), newTask).
      WorkingProcess_mem(workingProcessTuple(wpid(wpt), __working(wpt), __taskCounter(wpt), __watchdogThread(wpt), __processThread(wpt), newTask))
     +
-      r_increaseTaskCounter(wpid(wpt)). % TUKA!!!
+      r_increaseTaskCounter(wpid(wpt)). 
      WorkingProcess_mem(workingProcessTuple(wpid(wpt), __working(wpt), (__taskCounter(wpt)+1), __watchdogThread(wpt), __processThread(wpt), task(wpt)))
     + 
      r_clearTask(wpid(wpt)).
     WorkingProcess_mem(workingProcessTuple(wpid(wpt), __working(wpt), __taskCounter(wpt), __watchdogThread(wpt), __processThread(wpt), None))
     +
-    r_setDead(wpid(wpt))
+    r_setDead(wpid(wpt)).WorkingProcess_mem(workingProcessTuple(wpid(wpt),false,0,1,1,None))
 ;
 
 proc WatchdogThread(wpid:Nat, wdtid:Nat) = doSomethingWatchdog(wpid,wdtid).WatchdogThread(wpid,wdtid);  %% TODO: change if os.getppid() == 1:
 
-proc ProcessThread(wpid:Nat, ptid:Nat)= runProcessThread(wpid,ptid).processTask;
+proc ProcessThread(wpid:Nat, ptid:Nat)= runProcessThread(wpid,ptid).processTask; % TODO: pid should be dynamic
 
 
-proc WorkingProcess(wpid:Nat) = WorkingProcess_start(wpid) || WorkingProcess_mem(workingProcessTuple(wpid,false,0,1,1,None));
+proc WorkingProcess(wpid:Nat) = 
+WorkingProcess_start(wpid) || WorkingProcess_mem(workingProcessTuple(wpid,false,0,1,1,None));
 
 %WorkingProcess_start(wpid:Nat) = s_runWatchdogThread(wpid, 1);
-proc WorkingProcess_start(wpid:Nat) = runWorkingProcess.WatchdogThread(wpid, 1) || 
-				WorkingProcess_while(wpid, 0)
+
+% TODO: revert to this, for now let's ignore watchdog thread
+% proc WorkingProcess_start(wpid:Nat) = r_activateWorkingProcess(wpid).runWorkingProcess.WatchdogThread(wpid, 1) || 
+
+proc WorkingProcess_start(wpid:Nat) = r_activateWorkingProcess(wpid).
+					  runWorkingProcess.
+					    WorkingProcess_while(wpid, 0).
+			  WorkingProcess_start(wpid)
 				;
 
 proc WorkingProcess_while(wpid:Nat, idleLoopCount:Nat) = 
 		sum stopEvent:Bool.s_getStopEvent(stopEvent). 
-		(idleLoopCount >= 10 || stopEvent) -> s_setDead(wpid).return <> ( 
+		(idleLoopCount >= 5 || stopEvent) -> s_setDead(wpid).return <> ( % I have set idleLoopCount to smaller value = 5 instead of 10
 			sum taskFromQueue:Task.s___pendingQueueGet(taskFromQueue). 
 			(taskFromQueue!=None) -> (
 				 s_clearTask(wpid).
@@ -509,7 +522,8 @@ init allow(  { getMaxSize, getMinSize,
 	  __resultsQueueGet,
 	  taskCallback,
 	  setDead,
-	  __pendingQueuePut_return
+	  __pendingQueuePut_return,
+	  activateWorkingProcess
 
 	  },
        comm( { r_getMaxSize|s_getMaxSize->getMaxSize,
@@ -551,8 +565,9 @@ init allow(  { getMaxSize, getMinSize,
 	r__createWorkingProcess | s__createWorkingProcess -> createWorkingProcess,
 	r_addWorker | s_addWorker -> addWorker,
 	r___resultsQueueGet | s___resultsQueueGet -> __resultsQueueGet,
-	r_setDead | r_setDead1 | s_setDead -> setDead,
-	r___pendingQueuePut_return | s___pendingQueuePut_return -> __pendingQueuePut_return
+	r_setDead | r_setDead1 | r_setDead2 | s_setDead -> setDead,
+	r___pendingQueuePut_return | s___pendingQueuePut_return -> __pendingQueuePut_return,
+	s_activateWorkingProcess | r_activateWorkingProcess -> activateWorkingProcess
        },
        %% === Agent stuff
        RequestExecutingAgent || RequestClient ||
@@ -561,9 +576,10 @@ init allow(  { getMaxSize, getMinSize,
 	 __prListLock || 
 	 ProcessPool_getNumWorkingProcesses || ProcessPool_getNumIdleProcesses
 
-         || OS_ops(1)
+         || OS_ops([1,2,3])
 	 || WorkingProcess(1) 
-
+	 || WorkingProcess(2) 
+	 || WorkingProcess(3) 
      ));
      
      
