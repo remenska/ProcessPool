@@ -1,8 +1,8 @@
 %%% START HERE
 sort TaskFunction = struct RegisterFile | RemoveFile | LogUpload;
-sort Task = struct task(id:Nat,done:Bool,timeOut:Nat, taskFunction:TaskFunction) | None; 
+sort Task = struct task(id:Nat,done:Bool, taskFunction:TaskFunction) | None; 
 sort Worker = struct W(id:Nat,isWorking:Bool, isAlive:Bool);
-sort ReturnMessage = struct S_OK | S_ERROR | S_FULL;
+% sort ReturnMessage = struct S_OK | S_ERROR | S_FULL;
 % FIXED Error while exploring state space: Expression !(0 < #tail([])) does not rewrite to true or false in the condition 
 %if(e7_WorkingProcess_while2, if(e6_WorkingProcess_while2, s10_WorkingProcess_while2 == 14 && !(!stopEvent_WorkingProcess_while2 &&
 % #__pendingQueue_Queues_mem > 0), s10_WorkingProcess_while2 == 14 && !stopEvent_WorkingProcess_while2 && #__pendingQueue_Queues_mem > 0), 
@@ -112,11 +112,11 @@ proc RequestExecutingAgent_mem(__requestsPerCycle:Nat, minProcess:Nat, maxProces
  RequestExecutingAgent_mem(__requestsPerCycle, minProcess, maxProcess, queueSize) 
 ;
 
-proc RequestExecutingAgent = RequestExecutingAgent_mem(10,1,8,3) || processPoolSingleton || RequestExecutingAgent_execute(0);
+proc RequestExecutingAgent = RequestExecutingAgent_mem(5,1,3,3) || processPoolSingleton || RequestExecutingAgent_execute(0);
 
 proc processPoolSingleton = Queues_mem([],[], 3) ||
 
-ProcessPool_mem(processPoolTuple(1,8,3,[],false, false)) || ProcessPool__spawnNeededWorkingProcesses || ProcessPool_createAndQueueTask || ProcessPool___backgroundProcess ;
+ProcessPool_mem(processPoolTuple(1,3,3,[],false, false)) || ProcessPool__spawnNeededWorkingProcesses || ProcessPool_createAndQueueTask || ProcessPool___backgroundProcess ;
 
 % RequestExecutingAgent method
 proc RequestExecutingAgent_execute(taskCounter:Nat) =
@@ -134,15 +134,18 @@ proc RequestExecutingAgent_execute(taskCounter:Nat) =
 
 act s_getFreeSlots, r_getFreeSlots, getFreeSlots:Nat;
 act c_s_createAndQueueTask, c_r_createAndQueueTask, c__createAndQueueTask:Task;
-act r_s_createAndQueueTask, r_r_createAndQueueTask, r__createAndQueueTask:ReturnMessage;
+% act r_s_createAndQueueTask, r_r_createAndQueueTask, r__createAndQueueTask:ReturnMessage;
 
 act time_sleep;   
 proc RequestExecutingAgent_execute_while(taskCounter:Nat, newTask:Task) = 
     sum freeSlots:Nat.s_getFreeSlots(freeSlots).
     (freeSlots==0) -> (
     time_sleep.RequestExecutingAgent_execute_while(taskCounter, newTask) 
-    ) <> c_s_createAndQueueTask(newTask).sum retMsg:ReturnMessage.r_r_createAndQueueTask(retMsg).
-	(retMsg!=S_OK) -> RequestExecutingAgent_execute_while(taskCounter,newTask) <> return % this is in case if not enqueue["OK"]: self.log.error( enqueue["Message"] )
+    ) <> c_s_createAndQueueTask(newTask).
+    %sum retMsg:ReturnMessage.r_r_createAndQueueTask(retMsg).
+%	(retMsg!=S_OK) -> 
+	RequestExecutingAgent_execute_while(taskCounter,newTask)
+%	<> return % this is in case if not enqueue["OK"]: self.log.error( enqueue["Message"] )
 ;
 
 % ProcessPool method
@@ -153,9 +156,9 @@ proc ProcessPool_createAndQueueTask =
 %     sum retMsg:ReturnMessage.r___pendingQueuePut_return(retMsg). % EDITED: it will just block until there is space in the queue again, because blocking = True in the implementation
     s__prListLock_release.
 %     ((retMsg==S_OK) ->
-    ProcessPool__spawnNeededWorkingProcesses.
+    ProcessPool__spawnNeededWorkingProcesses
 %     ).
-    r_s_createAndQueueTask(S_OK)
+ %   r_s_createAndQueueTask(S_OK)
 .ProcessPool_createAndQueueTask
 ;
 
@@ -217,7 +220,7 @@ act s__createWorkingProcess, r__createWorkingProcess, createWorkingProcess:Nat; 
 
 % keeps track of available WorkingProcess id's (those who are dead), assigns the dead ones back to newly created processes
 proc OS_ops( workerIDs:List(Nat)) = 
-   r__createWorkingProcess(head(workerIDs)).OS_ops(tail(workerIDs)) 
+   (workerIDs!=[])-> r__createWorkingProcess(head(workerIDs)).OS_ops(tail(workerIDs)) 
    +
    sum deadWorkerID:Nat.r_setDead2(deadWorkerID).OS_ops(deadWorkerID|>workerIDs)
 ;
@@ -226,7 +229,7 @@ proc OS_ops( workerIDs:List(Nat)) =
 %% creates tasks....
 proc RequestClient = 
     (
-    r_getRequest(task(1,false,10, LogUpload)) + r_getRequest(task(1,false,10, RegisterFile)) + r_getRequest(task(2,false,10, RemoveFile))
+    r_getRequest(task(1,false, LogUpload)) + r_getRequest(task(1,false, RegisterFile)) + r_getRequest(task(2,false, RemoveFile))
     )
 .RequestClient
 ;
@@ -461,7 +464,7 @@ proc WorkingProcess_start(wpid:Nat) = r_activateWorkingProcess(wpid).
 
 proc WorkingProcess_while(wpid:Nat, idleLoopCount:Nat) = 
 		sum stopEvent:Bool.s_getStopEvent(stopEvent). 
-		(idleLoopCount >= 5 || stopEvent) -> s_setDead(wpid).return <> ( % I have set idleLoopCount to smaller value = 5 instead of 10 )
+		(idleLoopCount >= 3 || stopEvent) -> s_setDead(wpid).return <> ( % I have set idleLoopCount to smaller value = 3 instead of 10 )
 			sum taskFromQueue:Task.s___pendingQueueGet(taskFromQueue). 
 			(taskFromQueue!=None) -> (
 				 s_clearTask(wpid).
@@ -470,7 +473,7 @@ proc WorkingProcess_while(wpid:Nat, idleLoopCount:Nat) =
 				 ProcessThread(wpid,11). % TODO: this should be in parallel			    
 				 joinProcessThread.
       %             if not self.task.taskResults() and not self.task.taskException():
-				 s___resultsQueuePut(task(id(taskFromQueue), true, timeOut(taskFromQueue), taskFunction(taskFromQueue))).
+				 s___resultsQueuePut(task(id(taskFromQueue), true,  taskFunction(taskFromQueue))).
 				 s_increaseTaskCounter(wpid).
 				 s_set__working(wpid, false)   
 				). WorkingProcess_while(wpid, 0)
@@ -515,7 +518,7 @@ init allow(  { getMaxSize, getMinSize,
 	  RequestExecutingAgent_return,
 	  getFreeSlots,
 	  c__createAndQueueTask, 
-	  r__createAndQueueTask,
+%	  r__createAndQueueTask,
 	  time_sleep,
 	  __pendingQueuePut,
 	  __cleanDeadProcesses,
@@ -564,7 +567,7 @@ init allow(  { getMaxSize, getMinSize,
 	c_s_getNumIdleProcesses | c_r_getNumIdleProcesses -> c__getNumIdleProcesses,
 	s_getFreeSlots | r_getFreeSlots -> getFreeSlots,
 	c_s_createAndQueueTask | c_r_createAndQueueTask -> c__createAndQueueTask,
-	r_s_createAndQueueTask | r_r_createAndQueueTask -> r__createAndQueueTask,
+%	r_s_createAndQueueTask | r_r_createAndQueueTask -> r__createAndQueueTask,
 	r___pendingQueuePut | s___pendingQueuePut ->  __pendingQueuePut,
 	r___cleanDeadProcesses | s___cleanDeadProcesses -> __cleanDeadProcesses,
 	r_getDraining | s_getDraining -> getDraining,
