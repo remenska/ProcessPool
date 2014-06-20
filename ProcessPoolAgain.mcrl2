@@ -122,7 +122,6 @@ proc RequestExecutingAgent_mem(__requestsPerCycle:Nat, minProcess:Nat, maxProces
  RequestExecutingAgent_mem(__requestsPerCycle, minProcess, maxProcess, queueSize) 
 ;
 
-% PARAMETERS:
 % __requestsPerCycle:Nat, minProcess:Nat, maxProcess:Nat, queueSize:Nat
 proc RequestExecutingAgent = RequestExecutingAgent_mem(__requestsPerCycle,__minProcess,__maxProcess,__queueSize) || processPoolSingleton || RequestExecutingAgent_execute(0);
 
@@ -167,14 +166,14 @@ proc ProcessPool_createAndQueueTask =
     sum newTask:Task.c_r_createAndQueueTask(newTask).
     s__prListLock_acquire.  
     s___pendingQueuePut(newTask).
-%     sum retMsg:ReturnMessage.r___pendingQueuePut_return(retMsg). % EDITED: it will just block until there is space in the queue again, because blocking = True in the implementation
+ % EDITED/COMMENTED: it will just block until there is space in the queue again, because blocking = True in the implementation
+%     sum retMsg:ReturnMessage.r___pendingQueuePut_return(retMsg).
     s__prListLock_release.
 %     ((retMsg==S_OK) ->
     ProcessPool__spawnNeededWorkingProcesses
 %     ).
  %   r_s_createAndQueueTask(S_OK)
-.ProcessPool_createAndQueueTask
-;
+.ProcessPool_createAndQueueTask;
 
 
 proc ProcessPool__spawnNeededWorkingProcesses = 
@@ -215,7 +214,6 @@ proc ProcessPool__spawnWorkingProcess =
     s__prListLock_acquire.
     sum newwpid:Nat.s__createWorkingProcess(newwpid).
     s_activateWorkingProcess(newwpid).
-%   WorkingProcess(newwpid).
     s_addWorker(W(newwpid,false,true)).
     s__prListLock_release
 ;
@@ -230,7 +228,6 @@ proc ProcessPool__cleanDeadProcesses =
   ;
   
 act s__createWorkingProcess, r__createWorkingProcess, createWorkingProcess:Nat; % only on reply a parameter is sent (wpid for new WorkingProcess) 
-% act r__isAlive, s__isAlive, isAlive:Bool; 
 
 % keeps track of available WorkingProcess id's (those who are dead), assigns the dead ones back to newly created processes
 proc OS_ops( workerIDs:List(Nat)) = 
@@ -239,7 +236,6 @@ proc OS_ops( workerIDs:List(Nat)) =
    sum deadWorkerID:Nat.r_setDead2(deadWorkerID).OS_ops(deadWorkerID|>workerIDs)
 ;
 
-% proc CreateProcessPool = createProcessPool;
 %% creates tasks....
 proc RequestClient = 
     (
@@ -249,8 +245,6 @@ proc RequestClient =
 ;
 
 % END RequestExecutingAgent processes
-
-
 
 
 act c_s_getNumWorkingProcesses, c_r_getNumWorkingProcesses, c__getNumWorkingProcesses;
@@ -282,7 +276,7 @@ proc ProcessPool_mem(ppt:ProcessPoolTuple) =
 	sum wpid:Nat,working:Bool.r_set__working1(wpid, working). 
        ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), mapSetWorking(wpid, working, __workersDict(ppt)), __draining(ppt), __stopEvent(ppt)))
 	+
-	r_getFreeSlots( max(0, Int2Nat(__maxSize(ppt) -  mapGetNumWorkingProcesses(__workersDict(ppt) )))).
+	r_getFreeSlots( max(0, __maxSize(ppt) -  mapGetNumWorkingProcesses(__workersDict(ppt) ) )). % TODO: debug here why Int2Nat(-1)
       ProcessPool_mem(ppt)
 	+ 
 	r___cleanDeadProcesses.
@@ -372,11 +366,12 @@ act doSomethingWorkingProcess;
 act r_set__working, r_set__working1, s_set__working, set__working:Nat#Bool;
 act r_runProcessThread, s_runProcessThread, runProcessThread:Nat#Nat;
 act r_setTask, s_setTask, setTask:Nat#Task;
-act processTask, runWorkingProcess, createProcessThread, return;
+% act processTask, createProcessThread, 
+act return;
 act r_increaseTaskCounter, s_increaseTaskCounter, increaseTaskCounter:Nat;
 act r_getStopEvent, s_getStopEvent, getStopEvent:Bool; 
 act r_clearTask, s_clearTask, clearTask:Nat;
-act r_joinProcessThread, s_joinProcessThread, joinProcessThread;
+% act r_joinProcessThread, s_joinProcessThread, joinProcessThread;
 act r___pendingQueueGet, s___pendingQueueGet, __pendingQueueGet:Task;
 act r___pendingQueuePut, s___pendingQueuePut, __pendingQueuePut:Task;
 % act r___pendingQueuePut_return, s___pendingQueuePut_return, __pendingQueuePut_return:ReturnMessage;
@@ -406,7 +401,7 @@ proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task), __maxPendin
     r___resultsQueueSize(#__resultsQueue).
     Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue) 
       +
-   %  pendingQueue will block putting elements beyond the max, doesn't raise exception!!!! Because blocking = True in the implementation by default
+%  pendingQueue will block putting elements beyond the max, doesn't raise exception!!!! Because blocking = True in the implementation by default
     (__maxPendingQueue> #__pendingQueue) -> 
     sum newTask:Task.r___pendingQueuePut(newTask).Queues_mem(__pendingQueue<|newTask, __resultsQueue, __maxPendingQueue)
     
@@ -414,8 +409,8 @@ proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task), __maxPendin
 %    (s___pendingQueuePut_return(S_OK).Queues_mem(__pendingQueue<|newTask, __resultsQueue, __maxPendingQueue))
     +
     
-     % does it block if there is nothing in the queue, or should I just return None?
- % CHECKED, IT'S BLOCKING, so just commented these below!!!!
+% does it block if there is nothing in the queue, or should I just return None?
+% CHECKED, IT'S BLOCKING, so just commented these below!!!!
  
 %  (__resultsQueue==[])-> r___resultsQueueGet(None).  
 %    Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue)
@@ -459,7 +454,18 @@ proc WorkingProcess_mem(wpt:WorkingProcessTuple) =
 
 proc WatchdogThread(wpid:Nat, wdtid:Nat) = doSomethingWatchdog(wpid,wdtid).WatchdogThread(wpid,wdtid);  %% TODO: change if os.getppid() == 1:
 
-proc ProcessThread(wpid:Nat, ptid:Nat)= runProcessThread(wpid,ptid).processTask; % TODO: pid should be dynamic
+
+act s_forkProcessThread, r_forkProcessThread, forkProcessThread:Nat#Nat;
+act s_joinProcessThread, r_joinProcessThread, joinProcessThread:Nat#Nat;
+
+act processTask:Nat;
+
+proc ProcessThread(wpid:Nat, ptid:Nat)= 
+    r_forkProcessThread(wpid,ptid).
+	runProcessThread(wpid,ptid).processTask(ptid).
+    r_joinProcessThread(wpid,ptid)
+.ProcessThread(wpid, ptid)
+; % TODO: pid should be dynamic
 
 
 proc WorkingProcess(wpid:Nat) = 
@@ -469,9 +475,9 @@ WorkingProcess_start(wpid) || WorkingProcess_mem(workingProcessTuple(wpid,false,
 
 % TODO: revert to this, for now let's ignore watchdog thread
 % proc WorkingProcess_start(wpid:Nat) = r_activateWorkingProcess(wpid).runWorkingProcess.WatchdogThread(wpid, 1) || 
-
+act runWorkingProcess:Nat;
 proc WorkingProcess_start(wpid:Nat) = r_activateWorkingProcess(wpid).
-					  runWorkingProcess.
+					  runWorkingProcess(wpid).
 					    WorkingProcess_while(wpid, 0).
 			  WorkingProcess_start(wpid)
 				;
@@ -484,8 +490,8 @@ proc WorkingProcess_while(wpid:Nat, idleLoopCount:Nat) =
 				 s_clearTask(wpid).
 				 s_set__working(wpid, true).
 				 s_setTask(wpid, taskFromQueue). 
-				 ProcessThread(wpid,11). % TODO: this should be in parallel			    
-				 joinProcessThread.
+				 s_forkProcessThread(wpid,wpid+10).
+				 s_joinProcessThread(wpid,wpid+10).
       %             if not self.task.taskResults() and not self.task.taskException():
 				 s___resultsQueuePut(task(id(taskFromQueue), true,  taskFunction(taskFromQueue))).
 				 s_increaseTaskCounter(wpid).
@@ -547,7 +553,8 @@ init allow(  { getMaxSize, getMinSize,
 	  setDead,
 %	  __pendingQueuePut_return,
 	  activateWorkingProcess,
-	  ___resultsQueueSize
+	  ___resultsQueueSize,
+	forkProcessThread
 
 	  },
        comm( { r_getMaxSize|s_getMaxSize->getMaxSize,
@@ -592,7 +599,8 @@ init allow(  { getMaxSize, getMinSize,
 	r_setDead | r_setDead1 | r_setDead2 | s_setDead -> setDead,
 %	r___pendingQueuePut_return | s___pendingQueuePut_return -> __pendingQueuePut_return,
 	s_activateWorkingProcess | r_activateWorkingProcess -> activateWorkingProcess,
-	r___resultsQueueSize | s___resultsQueueSize ->  ___resultsQueueSize
+	r___resultsQueueSize | s___resultsQueueSize ->  ___resultsQueueSize,
+	s_forkProcessThread | r_forkProcessThread -> forkProcessThread
        },
        %% === Agent stuff
        RequestExecutingAgent || RequestClient ||
@@ -604,6 +612,8 @@ init allow(  { getMaxSize, getMinSize,
          || OS_ops([1,2])
 	 || WorkingProcess(1) 
 	 || WorkingProcess(2) 
+	 || ProcessThread(1,11)
+	 || ProcessThread(2,12)
 % 	 || WorkingProcess(3) 
      ));
      
