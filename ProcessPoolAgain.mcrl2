@@ -153,10 +153,10 @@ proc RequestExecutingAgent_execute_while(taskCounter:Nat, newTask:Task) =
     sum freeSlots:Nat.s_getFreeSlots(freeSlots).
     (freeSlots==0) -> (
     time_sleep.RequestExecutingAgent_execute_while(taskCounter, newTask) 
-    ) <> c_s_createAndQueueTask(newTask).
+    ) <> c_s_createAndQueueTask(newTask)
     %sum retMsg:ReturnMessage.r_r_createAndQueueTask(retMsg).
 %	(retMsg!=S_OK) -> 
-	RequestExecutingAgent_execute_while(taskCounter,newTask)
+% 	.RequestExecutingAgent_execute_while(taskCounter,newTask) % <-- THIS LINE WAS OFFENDING!!!
 %	<> return % this is in case if not enqueue["OK"]: self.log.error( enqueue["Message"] )
 ;
 
@@ -246,11 +246,11 @@ proc OS_ops( workerIDs:List(Nat)) =
 proc RequestClient = 
     (
     r_getRequest(task(1,false, LogUpload)).
-    r_getRequest(task(1,false, RegisterFile)).
-    r_getRequest(task(2,false, RemoveFile)).
-    r_getRequest(task(1,false, LogUpload)).
-    r_getRequest(task(1,false, RegisterFile)).
-    r_getRequest(task(2,false, RemoveFile))
+    r_getRequest(task(2,false, RegisterFile)).
+    r_getRequest(task(3,false, RemoveFile)).
+    r_getRequest(task(4,false, LogUpload)).
+    r_getRequest(task(5,false, RegisterFile)).
+    r_getRequest(task(6,false, RemoveFile))
     )
 % .RequestClient
 ;
@@ -413,11 +413,11 @@ proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task), __maxPendin
     Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue) 
       +
 %  pendingQueue will block putting elements beyond the max, doesn't raise exception!!!! Because blocking = True in the implementation by default
+%  (s___pendingQueuePut_return(S_FULL).Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue))  <> 
+%    (s___pendingQueuePut_return(S_OK).Queues_mem(__pendingQueue<|newTask, __resultsQueue, __maxPendingQueue))
     (__maxPendingQueue> #__pendingQueue) -> 
     sum newTask:Task.r___pendingQueuePut(newTask).Queues_mem(__pendingQueue<|newTask, __resultsQueue, __maxPendingQueue)
     
-%  (s___pendingQueuePut_return(S_FULL).Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue))  <> 
-%    (s___pendingQueuePut_return(S_OK).Queues_mem(__pendingQueue<|newTask, __resultsQueue, __maxPendingQueue))
     +
     
 % does it block if there is nothing in the queue, or should I just return None?
