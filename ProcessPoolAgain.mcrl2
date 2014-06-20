@@ -136,7 +136,6 @@ proc RequestExecutingAgent_execute(taskCounter:Nat) =
     sum requestsPerCycle:Nat.s_getRequestsPerCycle(requestsPerCycle).
       (taskCounter<requestsPerCycle) -> (
 	 sum newTask:Task.s_getRequest(newTask).
-	  % TODO:  self.cacheRequest( request )
 	  c_s_getNumIdleProcesses.sum numIdle:Nat.r_r_getNumIdleProcesses(numIdle).
 	  c_s_getNumWorkingProcesses.sum numWorking:Nat.r_r_getNumWorkingProcesses(numWorking).
 	  RequestExecutingAgent_execute_while(taskCounter, newTask)
@@ -237,11 +236,23 @@ proc OS_ops( workerIDs:List(Nat)) =
 ;
 
 %% creates tasks....
+% proc RequestClient = 
+%     (
+%     r_getRequest(task(1,false, LogUpload)) + r_getRequest(task(1,false, RegisterFile)) + r_getRequest(task(2,false, RemoveFile))
+%     )
+% .RequestClient
+% ;
+
 proc RequestClient = 
     (
-    r_getRequest(task(1,false, LogUpload)) + r_getRequest(task(1,false, RegisterFile)) + r_getRequest(task(2,false, RemoveFile))
+    r_getRequest(task(1,false, LogUpload)).
+    r_getRequest(task(1,false, RegisterFile)).
+    r_getRequest(task(2,false, RemoveFile)).
+    r_getRequest(task(1,false, LogUpload)).
+    r_getRequest(task(1,false, RegisterFile)).
+    r_getRequest(task(2,false, RemoveFile))
     )
-.RequestClient
+% .RequestClient
 ;
 
 % END RequestExecutingAgent processes
@@ -452,7 +463,7 @@ proc WorkingProcess_mem(wpt:WorkingProcessTuple) =
     r_setDead(wpid(wpt)).WorkingProcess_mem(workingProcessTuple(wpid(wpt),false,0,1,1,None))
 ;
 
-proc WatchdogThread(wpid:Nat, wdtid:Nat) = doSomethingWatchdog(wpid,wdtid).WatchdogThread(wpid,wdtid);  %% TODO: change if os.getppid() == 1:
+proc WatchdogThread(wpid:Nat, wdtid:Nat) = doSomethingWatchdog(wpid,wdtid).WatchdogThread(wpid,wdtid);  
 
 
 act s_forkProcessThread, r_forkProcessThread, forkProcessThread:Nat#Nat;
@@ -465,7 +476,7 @@ proc ProcessThread(wpid:Nat, ptid:Nat)=
 	runProcessThread(wpid,ptid).processTask(ptid).
     r_joinProcessThread(wpid,ptid)
 .ProcessThread(wpid, ptid)
-; % TODO: pid should be dynamic
+; 
 
 
 proc WorkingProcess(wpid:Nat) = 
