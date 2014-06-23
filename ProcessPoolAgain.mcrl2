@@ -212,8 +212,8 @@ act s_activateWorkingProcess, r_activateWorkingProcess, activateWorkingProcess:N
 proc ProcessPool__spawnWorkingProcess = 
     s__prListLock_acquire.
     sum newwpid:Nat.s__createWorkingProcess(newwpid).
-    s_activateWorkingProcess(newwpid).
     s_addWorker(W(newwpid,false,true)).
+    s_activateWorkingProcess(newwpid).
     s__prListLock_release
 ;
 
