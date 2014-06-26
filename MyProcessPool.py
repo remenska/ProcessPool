@@ -103,17 +103,22 @@ class ProcessPool( object ):
 	print time.clock()
         del self.__workersDict[pid]
         print "WorkersDict %s " % (self.__workersDict)
-        pool.done = True
+        #pool.done = True
       else:
         print "Pool:My worker still alive and kicking"
         #print "WorkersDict %s " % (self.__workersDict)        
         time.sleep(1)
-        self.__pendingQueue.put(33)
+        #self.__pendingQueue.put(33)
         
 if __name__ == "__main__":
   pool = ProcessPool()
   pool.spawnWorkingProcess()
-  
+  pool.spawnWorkingProcess()
+  pool.spawnWorkingProcess()
+  pool.spawnWorkingProcess()
+  pool.spawnWorkingProcess()
+  pool.spawnWorkingProcess()
+
   while True:
     pool.areWorkersAlive()
     if pool.done:

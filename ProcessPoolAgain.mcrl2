@@ -130,7 +130,9 @@ proc RequestExecutingAgent = RequestExecutingAgent_mem(__requestsPerCycle,__minP
 proc processPoolSingleton = Queues_mem([],[], __queueSize) ||
 % sort ProcessPoolTuple = struct processPoolTuple(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool, __stopEvent:Bool);
   ProcessPool_mem(processPoolTuple(__minProcess,__maxProcess,__queueSize,[],false, false)) 
-	    || ProcessPool__spawnNeededWorkingProcesses || ProcessPool_createAndQueueTask || ProcessPool___backgroundProcess ;
+	    || ProcessPool__spawnNeededWorkingProcesses || ProcessPool_createAndQueueTask
+%  || ProcessPool___backgroundProcess % TODO: get the background process back!!
+;
 
 % RequestExecutingAgent method
 proc RequestExecutingAgent_execute(taskCounter:Nat) =
