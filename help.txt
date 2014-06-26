@@ -8,5 +8,5 @@ lpsparunfold -sWorker ProcessPoolAgain.5.lps ProcessPoolAgain.6.lps
 lpsconstelm -v ProcessPoolAgain.6.lps ProcessPoolAgain.7.lps
 lpsrewr ProcessPoolAgain.7.lps ProcessPoolAgain.8.lps
 lpsparelm -v ProcessPoolAgain.8.lps ProcessPoolAgain.9.lps
-lpssuminst -v ProcessPoolAgain9.lps ProcessPoolAgain10.lps
-time lps2lts-sym -rgs --order=chain-prev -v --deadlock --saturation=sat-like --save-sat-level --trace=amanTracePak.gcf ProcessPoolAgain10.lps
+lpssuminst -v ProcessPoolAgain.9.lps ProcessPoolAgain.10.lps
+time lps2lts-sym -rgs --order=chain-prev -v --deadlock --saturation=sat-like --save-sat-level --trace=amanTracePak.gcf ProcessPoolAgain.10.lps
