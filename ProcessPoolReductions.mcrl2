@@ -1,6 +1,6 @@
 %%% START HERE
-sort TaskFunction = struct RegisterFile | RemoveFile | LogUpload;
-sort Task = struct task(id:Nat,done:Bool, taskFunction:TaskFunction) | None; 
+% sort TaskFunction = struct RegisterFile | RemoveFile | LogUpload;
+sort Task = struct task(id:Nat,done:Bool) | None; 
 sort Worker = struct W(id:Nat,isWorking:Bool, isAlive:Bool);
 % sort ReturnMessage = struct S_OK | S_ERROR | S_FULL;
 % FIXED Error while exploring state space: Expression !(0 < #tail([])) does not rewrite to true or false in the condition 
@@ -129,7 +129,7 @@ proc RequestExecutingAgent = RequestExecutingAgent_mem(__requestsPerCycle,__minP
 % __pendingQueue:List(Task),__resultsQueue:List(Task), __maxPendingQueue:Nat
 proc processPoolSingleton = Queues_mem([],[], __queueSize) ||
 % sort ProcessPoolTuple = struct processPoolTuple(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool, __stopEvent:Bool);
-  ProcessPool_mem(processPoolTuple(__minProcess,__maxProcess,__queueSize,[],false, false)) 
+  ProcessPool_mem(processPoolTuple(__minProcess,__maxProcess,__queueSize,[],false)) 
 	    || ProcessPool__spawnNeededWorkingProcesses || ProcessPool_createAndQueueTask || ProcessPool___backgroundProcess 
 ;
 
@@ -179,8 +179,8 @@ proc ProcessPool_createAndQueueTask =
 
 proc ProcessPool__spawnNeededWorkingProcesses = 
     ProcessPool__cleanDeadProcesses.
-    sum __draining:Bool.s_getDraining(__draining).sum __stopEvent:Bool.s_getStopEvent(__stopEvent).
-  (__draining || __stopEvent) -> (return) <> 
+    sum __draining:Bool.s_getDraining(__draining).
+  (__draining) -> (return) <> 
 	(
 	  ProcessPool__spawnNeededWorkingProcesses_while.
 	  ProcessPool__spawnNeededWorkingProcesses_while1
@@ -247,12 +247,12 @@ proc OS_ops( workerIDs:List(Nat)) =
 
 proc RequestClient = 
     (
-    r_getRequest(task(1,false, LogUpload)).
-    r_getRequest(task(2,false, RegisterFile)).
-    r_getRequest(task(3,false, RemoveFile)).
-    r_getRequest(task(4,false, LogUpload)).
-    r_getRequest(task(5,false, RegisterFile)).
-    r_getRequest(task(6,false, RemoveFile))
+    r_getRequest(task(1,false)).
+    r_getRequest(task(2,false)).
+    r_getRequest(task(3,false)).
+    r_getRequest(task(4,false)).
+    r_getRequest(task(5,false)).
+    r_getRequest(task(6,false))
     )
 % .RequestClient
 ;
@@ -266,7 +266,7 @@ act c_s_getNumIdleProcesses, c_r_getNumIdleProcesses, c__getNumIdleProcesses;
 act r_s_getNumIdleProcesses, r_r_getNumIdleProcesses, r__getNumIdleProcesses:Nat; 
 
 act r_getWorkersDict, s_getWorkersDict, getWorkersDict:List(Worker);
-sort ProcessPoolTuple = struct processPoolTuple(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool, __stopEvent:Bool);
+sort ProcessPoolTuple = struct processPoolTuple(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool);
 
 % BEGIN ProcessPool processes ========
 
@@ -290,19 +290,19 @@ proc ProcessPool_mem(ppt:ProcessPoolTuple) =
 	ProcessPool_mem(ppt)
 	+
 	sum wpid:Nat,working:Bool.r_set__working1(wpid, working). 
-       ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), mapSetWorking(wpid, working, __workersDict(ppt)), __draining(ppt), __stopEvent(ppt)))
+       ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), mapSetWorking(wpid, working, __workersDict(ppt)), __draining(ppt)))
 	+
 	r_getFreeSlots( max(0, __maxSize(ppt) -  mapGetNumWorkingProcesses(__workersDict(ppt) ) )). % DONE: debug here why Int2Nat(-1)
       ProcessPool_mem(ppt)
 	+ 
 	r___cleanDeadProcesses.
-	ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), cleanDeadWorkers(__workersDict(ppt)), __draining(ppt), __stopEvent(ppt)))
+	ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), cleanDeadWorkers(__workersDict(ppt)), __draining(ppt)))
 	+
 	r_getDraining(__draining(ppt)).
 	ProcessPool_mem(ppt)
-	+
-	r_getStopEvent(__stopEvent(ppt)). 
-	ProcessPool_mem(ppt)
+% 	+
+% 	r_getStopEvent(__stopEvent(ppt)). 
+% 	ProcessPool_mem(ppt)
 	+
 	r_getWorkersDict(__workersDict(ppt)).
 	ProcessPool_mem(ppt)
@@ -310,13 +310,13 @@ proc ProcessPool_mem(ppt:ProcessPoolTuple) =
 	numWorkers(#__workersDict(ppt)).ProcessPool_mem(ppt) % temp for debugging, TODO: remove it
 	+
 	sum newWorker:Worker.r_addWorker(newWorker).
-        ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), __workersDict(ppt)<|newWorker, __draining(ppt), __stopEvent(ppt)))
-	+
-	sum newStopEvent:Bool.r_setStopEvent(newStopEvent).
-	ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), __workersDict(ppt), __draining(ppt), newStopEvent))
+        ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), __workersDict(ppt)<|newWorker, __draining(ppt)))
+% 	+
+% 	sum newStopEvent:Bool.r_setStopEvent(newStopEvent).
+% 	ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), __workersDict(ppt), __draining(ppt), newStopEvent))
 	+
 	sum wpid:Nat.r_setDead1(wpid).
-	ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), mapSetDead(wpid, __workersDict(ppt)), __draining(ppt), __stopEvent(ppt)))
+	ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), mapSetDead(wpid, __workersDict(ppt)), __draining(ppt)))
 ;
 
 
@@ -501,8 +501,8 @@ proc WorkingProcess_start(wpid:Nat) = r_activateWorkingProcess(wpid).
 				;
 
 proc WorkingProcess_while(wpid:Nat, idleLoopCount:Nat) = 
-		sum stopEvent:Bool.s_getStopEvent(stopEvent). 
-		(idleLoopCount >= 3 || stopEvent) -> s_setDead(wpid).return <> ( % I have set idleLoopCount to smaller value = 3 instead of 10 )
+		sum draining:Bool.s_getDraining(draining). 
+		(idleLoopCount >= 3 || draining) -> s_setDead(wpid).return <> ( % I have set idleLoopCount to smaller value = 3 instead of 10 )
 			sum taskFromQueue:Task.s___pendingQueueGet(taskFromQueue). 
 			(taskFromQueue!=None) -> (
 				 s_clearTask(wpid).
@@ -511,7 +511,7 @@ proc WorkingProcess_while(wpid:Nat, idleLoopCount:Nat) =
 				 s_forkProcessThread(wpid,wpid+10).
 				 s_joinProcessThread(wpid,wpid+10).
       %             if not self.task.taskResults() and not self.task.taskException():
-				 s___resultsQueuePut(task(id(taskFromQueue), true,  taskFunction(taskFromQueue))).
+				 s___resultsQueuePut(task(id(taskFromQueue), true)).
 				 s_increaseTaskCounter(wpid).
 				 s_set__working(wpid, false)   
 				). WorkingProcess_while(wpid, 0)
