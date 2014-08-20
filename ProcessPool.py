@@ -281,19 +281,23 @@ class WorkingProcess( multiprocessing.Process ):
       print "PID:%s PPID:%s started process Thread..." % (os.getpid(), os.getppid())
       ## join processThread with or without timeout
       if self.task.getTimeOut():
+	print "WILL WAIT FOR JOIN(timeout)"
         self.__processThread.join( self.task.getTimeOut()+10 )
       else:
+	print "WILL WAIT FOR JOIN"
         self.__processThread.join()
 
       ## processThread is still alive? stop it!
       if self.__processThread.is_alive():
         self.__processThread._Thread__stop()
+        print "MUST FORCE-STOP PROCESS THREAD"
       
       print "PID:%s PPID:%s Process thread done..."% (os.getpid(), os.getppid())
       ## check results and callbacks presence, put task to results queue
       if self.task.hasCallback() or self.task.hasPoolCallback():
         if not self.task.taskResults() and not self.task.taskException():
           self.task.setResult( S_ERROR("Timed out") )
+          print ">>>TIMED OUT!!!!"
         self.__resultsQueue.put( task )
         print "ResultsQueue = %s " % self.__resultsQueue.qsize()
       ## increase task counter

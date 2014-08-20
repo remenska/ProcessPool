@@ -12,8 +12,9 @@ class RequestTask:
   def __call__(self):
     randomNumber = random.randint(0,2000000)
     #print "Req %s sleep %s"%(self.__id, sleepTime)
-    while randomNumber!=10:
-      randomNumber = random.randint(0,2000000)
+    #while randomNumber!=10:
+    while True: 
+     randomNumber = random.randint(0,2000000)
     print "Req %s finished"%self.__id
 
   #  original:
@@ -51,7 +52,7 @@ def processPool(  ):
 
 
 
-idPool = range(8)
+idPool = range(2)
 retried = 0
 taskCounter = 0
 requestsPerCycle = 20
@@ -68,7 +69,7 @@ while taskCounter < requestsPerCycle:
       retried += 1
       print "Empty, we wait"
       time.sleep(25)
-      idPool = range(7)
+      #idPool = range(2)
       continue
 
       if not processPool().getFreeSlots():
@@ -81,7 +82,7 @@ while taskCounter < requestsPerCycle:
 	                                           taskID = reqId,
 	                                           blocking = True,
 	                                           usePoolCallbacks = True,
-	                                           timeOut = 20 )
+	                                           timeOut = 2 )
     taskCounter += 1
 
 processPool().finalize( timeout = 10 )

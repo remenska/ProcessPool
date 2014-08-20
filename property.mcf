@@ -1,1 +1,1 @@
-forall d:Nat.val(d > 4) => [true*. getNumWorkingProcesses(d) ] false
+forall d:Nat.val(d > 3) => [true*. getNumWorkingProcesses(d) ] false
