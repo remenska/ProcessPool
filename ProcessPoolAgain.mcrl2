@@ -81,7 +81,7 @@ map __requestsPerCycle, __minProcess, __maxProcess, __queueSize:Nat;
 eqn __requestsPerCycle = 5;
     __minProcess = 1;
     __maxProcess = 2;
-    __queueSize = 3;
+    __queueSize = 2;
 % =================================
 % END ProcessPool maps
 % ================================
