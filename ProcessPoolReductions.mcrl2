@@ -78,7 +78,7 @@ eqn
 % PARAMETERS:
 
 map __requestsPerCycle, __minProcess, __maxProcess, __queueSize:Nat;
-eqn __requestsPerCycle = 5;
+eqn __requestsPerCycle = 4;
     __minProcess = 1;
     __maxProcess = 2;
     __queueSize = 2;
@@ -249,10 +249,10 @@ proc RequestClient =
     (
     r_getRequest(task(1,false)).
     r_getRequest(task(2,false)).
-    r_getRequest(task(3,false)).
-    r_getRequest(task(4,false)).
-    r_getRequest(task(5,false)).
-    r_getRequest(task(6,false))
+    r_getRequest(task(3,false))
+ %   r_getRequest(task(4,false)).
+ %   r_getRequest(task(5,false)).
+ %   r_getRequest(task(6,false))
     )
 % .RequestClient
 ;
