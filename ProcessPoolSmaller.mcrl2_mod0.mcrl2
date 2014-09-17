@@ -1,0 +1,1252 @@
+%%% START HERE
+sort TaskFunction = struct RegisterFile | RemoveFile | LogUpload;
+sort Task = struct task(id:Nat,done:Bool, taskFunction:TaskFunction) | None; 
+sort Worker = struct W(id:Nat,isWorking:Bool, isAlive:Bool);
+% sort ReturnMessage = struct S_OK | S_ERROR | S_FULL;
+% FIXED Error while exploring state space: Expression !(0 < #tail([])) does not rewrite to true or false in the condition 
+%if(e7_WorkingProcess_while2, if(e6_WorkingProcess_while2, s10_WorkingProcess_while2 == 14 && !(!stopEvent_WorkingProcess_while2 &&
+% #__pendingQueue_Queues_mem > 0), s10_WorkingProcess_while2 == 14 && !stopEvent_WorkingProcess_while2 && #__pendingQueue_Queues_mem > 0), 
+%if(e6_WorkingProcess_while2, s10...
+% This is because "Note that the head and tail of an empty list are undefined, so that mCRL2 will not further reduce the terms head([]) and tail([])"
+
+
+% BEGIN ProcessPool maps
+% ================================
+map mapGetNumWorkingProcesses: List(Worker) -> Nat;
+var
+    listWorkers:List(Worker);
+    el:Worker;
+
+eqn
+    mapGetNumWorkingProcesses([]) = 0;
+    isWorking(el) -> mapGetNumWorkingProcesses(el|>listWorkers) = 1 + mapGetNumWorkingProcesses(listWorkers);
+    !(isWorking(el)) -> mapGetNumWorkingProcesses(el|>listWorkers) = mapGetNumWorkingProcesses(listWorkers);
+
+% =================================
+map mapGetNumIdleProcesses: List(Worker) -> Nat;
+var
+    listWorkers:List(Worker);
+    el:Worker;
+
+eqn
+    mapGetNumIdleProcesses([]) = 0;
+    isWorking(el) -> mapGetNumIdleProcesses(el|>listWorkers) = mapGetNumIdleProcesses(listWorkers);
+    !(isWorking(el)) -> mapGetNumIdleProcesses(el|>listWorkers) = 1 + mapGetNumIdleProcesses(listWorkers);
+% =================================
+
+map mapSetWorking: Nat#Bool#List(Worker) -> List(Worker);
+var
+  listWorkers, updatedList:List(Worker);
+  el:Worker;
+  wpid:Nat;
+  isWorking:Bool;
+
+eqn
+    mapSetWorking(wpid, isWorking, []) = [];
+    (listWorkers!=[] && id(head(listWorkers))==wpid && isAlive(head(listWorkers))) ->  % FIXED: only alive processes set to working
+	mapSetWorking(wpid, isWorking, listWorkers) = W(id(head(listWorkers)), isWorking,isAlive(head(listWorkers)))|> mapSetWorking(wpid, isWorking, tail(listWorkers));
+    (listWorkers!=[] && id(head(listWorkers))!=wpid) -> 
+	mapSetWorking(wpid, isWorking, listWorkers) = head(listWorkers)|> mapSetWorking(wpid, isWorking, tail(listWorkers));
+    (listWorkers!=[] && id(head(listWorkers))==wpid && !isAlive(head(listWorkers))) ->   % FIXED: only alive processes set to working
+	mapSetWorking(wpid, isWorking, listWorkers) = head(listWorkers)|> mapSetWorking(wpid, isWorking, tail(listWorkers));
+
+map cleanDeadWorkers:List(Worker) -> List(Worker);
+var
+  listWorkers, updatedList:List(Worker);
+  el:Worker;
+  
+eqn
+  cleanDeadWorkers([]) = [];
+  (listWorkers!=[]) && (!isAlive(head(listWorkers))) -> cleanDeadWorkers(listWorkers) = cleanDeadWorkers(tail(listWorkers));
+  (listWorkers!=[]) && (isAlive(head(listWorkers))) -> cleanDeadWorkers(listWorkers) = head(listWorkers) |> cleanDeadWorkers(tail(listWorkers));
+% =================================
+
+map mapSetDead: Nat#List(Worker) -> List(Worker);
+var
+  listWorkers, updatedList:List(Worker);
+  wpid:Nat;
+  
+eqn
+  mapSetDead(wpid, []) = [];
+  (listWorkers!=[] && id(head(listWorkers))==wpid) ->  
+      mapSetDead(wpid,listWorkers) = W(id(head(listWorkers)),isWorking(head(listWorkers)),false)|> mapSetDead(wpid, tail(listWorkers));
+  (listWorkers!=[] && id(head(listWorkers))!=wpid) ->  
+       mapSetDead(wpid,listWorkers) = head(listWorkers)|> mapSetDead(wpid, tail(listWorkers));
+
+% ===============================
+
+% PARAMETERS:
+
+map __requestsPerCycle, __minProcess, __maxProcess, __queueSize:Nat;
+eqn __requestsPerCycle = 3;
+    __minProcess = 1;
+    __maxProcess = 2;
+    __queueSize = 1;
+% =================================
+% END ProcessPool maps
+% ================================
+
+
+%% ============ ProcessPool
+act r_getMaxSize, s_getMaxSize, getMaxSize:Nat;
+act r_getMinSize, s_getMinSize, getMinSize:Nat;
+act r_getNumWorkingProcesses, s_getNumWorkingProcesses, getNumWorkingProcesses:Nat;
+act r_getNumIdleProcesses, s_getNumIdleProcesses, getNumIdleProcesses:Nat;
+
+
+act s__prListLock_acquire,r__prListLock_acquire,__prListLock_acquire;
+act s__prListLock_release,r__prListLock_release,__prListLock_release;
+
+
+
+act s_getRequestsPerCycle, r_getRequestsPerCycle, getRequestsPerCycle:Nat;
+act s_getMinProcess, r_getMinProcess, getMinProcess:Nat;
+act s_getMaxProcess, r_getMaxProcess, getMaxProcess:Nat;
+act s_getQueueSize, r_getQueueSize, getQueueSize:Nat;
+act s_getRequest, r_getRequest, getRequest:Task;
+
+act RequestExecutingAgent_return;
+
+% BEGIN RequestExecutingAgent processes
+
+proc RequestExecutingAgent_mem(__requestsPerCycle:Nat, minProcess:Nat, maxProcess:Nat, queueSize:Nat) = 
+      r_getRequestsPerCycle(__requestsPerCycle).
+     RequestExecutingAgent_mem(__requestsPerCycle, minProcess, maxProcess, queueSize) 
+      + 
+     r_getMaxProcess(maxProcess).
+     RequestExecutingAgent_mem(__requestsPerCycle, minProcess, maxProcess, queueSize) 
+      +
+     r_getMinProcess(minProcess).
+     RequestExecutingAgent_mem(__requestsPerCycle, minProcess, maxProcess, queueSize) 
+      +
+     r_getQueueSize(queueSize).
+ RequestExecutingAgent_mem(__requestsPerCycle, minProcess, maxProcess, queueSize) 
+;
+
+% __requestsPerCycle:Nat, minProcess:Nat, maxProcess:Nat, queueSize:Nat
+proc RequestExecutingAgent = RequestExecutingAgent_mem(__requestsPerCycle,__minProcess,__maxProcess,__queueSize) || processPoolSingleton || RequestExecutingAgent_execute(0);
+
+% __pendingQueue:List(Task),__resultsQueue:List(Task), __maxPendingQueue:Nat
+proc processPoolSingleton = Queues_mem([],[], __queueSize) ||
+% sort ProcessPoolTuple = struct processPoolTuple(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool, __stopEvent:Bool);
+  ProcessPool_mem(processPoolTuple(__minProcess,__maxProcess,__queueSize,[],false)) 
+	    || ProcessPool__spawnNeededWorkingProcesses || ProcessPool_createAndQueueTask || ProcessPool___backgroundProcess 
+;
+
+% RequestExecutingAgent method
+proc RequestExecutingAgent_execute(taskCounter:Nat) =
+    sum requestsPerCycle:Nat.s_getRequestsPerCycle(requestsPerCycle).
+      (taskCounter<requestsPerCycle) -> (
+	 sum newTask:Task.s_getRequest(newTask).
+	  c_s_getNumIdleProcesses.sum numIdle:Nat.r_r_getNumIdleProcesses(numIdle).
+	  c_s_getNumWorkingProcesses.sum numWorking:Nat.r_r_getNumWorkingProcesses(numWorking).
+	  RequestExecutingAgent_execute_while(taskCounter, newTask)
+	 
+	).RequestExecutingAgent_execute(taskCounter+1) <> RequestExecutingAgent_return; 
+
+% RequestExecutingAgent method
+
+act s_getFreeSlots, r_getFreeSlots, getFreeSlots:Nat;
+act c_s_createAndQueueTask, c_r_createAndQueueTask, c__createAndQueueTask:Task;
+% act r_s_createAndQueueTask, r_r_createAndQueueTask, r__createAndQueueTask:ReturnMessage;
+
+act time_sleep;   
+proc RequestExecutingAgent_execute_while(taskCounter:Nat, newTask:Task) = 
+    sum freeSlots:Nat.s_getFreeSlots(freeSlots).
+    (freeSlots==0) -> (
+    time_sleep.RequestExecutingAgent_execute_while(taskCounter, newTask) 
+    ) <> c_s_createAndQueueTask(newTask)
+    %sum retMsg:ReturnMessage.r_r_createAndQueueTask(retMsg).
+%	(retMsg!=S_OK) -> 
+% 	.RequestExecutingAgent_execute_while(taskCounter,newTask) % <-- THIS LINE WAS OFFENDING!!!
+%	<> return % this is in case if not enqueue["OK"]: self.log.error( enqueue["Message"] )
+;
+
+% ProcessPool method
+proc ProcessPool_createAndQueueTask = 
+    sum newTask:Task.c_r_createAndQueueTask(newTask).
+    s__prListLock_acquire.  
+    s___pendingQueuePut(newTask).
+ % EDITED/COMMENTED: it will just block until there is space in the queue again, because blocking = True in the implementation
+%     sum retMsg:ReturnMessage.r___pendingQueuePut_return(retMsg).
+    s__prListLock_release.
+%     ((retMsg==S_OK) ->
+    ProcessPool__spawnNeededWorkingProcesses
+%     ).
+ %   r_s_createAndQueueTask(S_OK)
+.ProcessPool_createAndQueueTask;
+
+
+proc ProcessPool__spawnNeededWorkingProcesses = 
+    ProcessPool__cleanDeadProcesses.
+    sum __draining:Bool.s_getDraining(__draining).
+  (__draining) -> (return) <> 
+	(
+	  ProcessPool__spawnNeededWorkingProcesses_while.
+	  ProcessPool__spawnNeededWorkingProcesses_while1
+	  )
+;
+
+proc ProcessPool__spawnNeededWorkingProcesses_while = 
+    sum workersDict:List(Worker).s_getWorkersDict(workersDict).sum __minSize:Nat.s_getMinSize(__minSize).
+    (#workersDict < __minSize) -> 
+    (
+    ProcessPool__spawnWorkingProcess
+    .ProcessPool__spawnNeededWorkingProcesses_while
+    ) <> return
+;
+
+proc ProcessPool__spawnNeededWorkingProcesses_while1 = 
+	  c_s_getNumIdleProcesses.sum numIdle:Nat.r_r_getNumIdleProcesses(numIdle).
+	  sum pqSize:Nat.s___pendingQueueSize(pqSize).
+	  sum workersDict:List(Worker).s_getWorkersDict(workersDict).
+	  sum __maxSize:Nat.s_getMaxSize(__maxSize).
+	(#workersDict < __maxSize && pqSize>0 && numIdle==0) ->
+	(
+	    ProcessPool__spawnWorkingProcess
+	    .ProcessPool__spawnNeededWorkingProcesses_while1
+    ) <> return
+;
+
+
+act s_activateWorkingProcess, r_activateWorkingProcess, activateWorkingProcess:Nat;
+
+proc ProcessPool__spawnWorkingProcess = 
+    s__prListLock_acquire.
+    sum newwpid:Nat.s__createWorkingProcess(newwpid).
+    s_addWorker(W(newwpid,false,true)).
+    s_activateWorkingProcess(newwpid).
+    s__prListLock_release
+;
+
+act s___cleanDeadProcesses, r___cleanDeadProcesses, __cleanDeadProcesses;
+
+
+proc ProcessPool__cleanDeadProcesses = 
+  s__prListLock_acquire.
+  s___cleanDeadProcesses.
+  s__prListLock_release
+  ;
+  
+act s__createWorkingProcess, r__createWorkingProcess, createWorkingProcess:Nat; % only on reply a parameter is sent (wpid for new WorkingProcess) 
+
+% keeps track of available WorkingProcess id's (those who are dead), assigns the dead ones back to newly created processes
+proc OS_ops( workerIDs:List(Nat)) = 
+   (workerIDs!=[])-> r__createWorkingProcess(head(workerIDs)).OS_ops(tail(workerIDs)) 
+   +
+   sum deadWorkerID:Nat.r_setDead2(deadWorkerID).OS_ops(deadWorkerID|>workerIDs)
+;
+
+%% creates tasks....
+% proc RequestClient = 
+%     (
+%     r_getRequest(task(1,false, LogUpload)) + r_getRequest(task(1,false, RegisterFile)) + r_getRequest(task(2,false, RemoveFile))
+%     )
+% .RequestClient
+% ;
+
+proc RequestClient = 
+    (
+    r_getRequest(task(1,false, LogUpload)).
+    r_getRequest(task(2,false, RegisterFile))
+%   r_getRequest(task(3,false, RemoveFile))
+%     r_getRequest(task(4,false, LogUpload)).
+%     r_getRequest(task(5,false, RegisterFile)).
+%     r_getRequest(task(6,false, RemoveFile))
+    )
+% .RequestClient
+;
+
+% END RequestExecutingAgent processes
+
+
+act c_s_getNumWorkingProcesses, c_r_getNumWorkingProcesses, c__getNumWorkingProcesses;
+act r_s_getNumWorkingProcesses, r_r_getNumWorkingProcesses, r__getNumWorkingProcesses:Nat;
+act c_s_getNumIdleProcesses, c_r_getNumIdleProcesses, c__getNumIdleProcesses;
+act r_s_getNumIdleProcesses, r_r_getNumIdleProcesses, r__getNumIdleProcesses:Nat; 
+
+act r_getWorkersDict, s_getWorkersDict, getWorkersDict:List(Worker);
+sort ProcessPoolTuple = struct processPoolTuple(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool);
+
+% BEGIN ProcessPool processes ========
+
+act r_getDraining, s_getDraining, getDraining:Bool;
+act r_addWorker, s_addWorker, addWorker:Worker;
+
+
+% ProcessPool memory
+proc ProcessPool_mem(ppt:ProcessPoolTuple) = 
+        r_getMaxSize(__maxSize(ppt)).
+	  ProcessPool_mem(ppt)
+        +
+        r_getMinSize(__minSize(ppt)).
+        ProcessPool_mem(ppt)
+	+
+	r_getNumWorkingProcesses(mapGetNumWorkingProcesses(__workersDict(ppt))).
+	ProcessPool_mem(ppt)
+	+
+	r_getNumIdleProcesses(mapGetNumIdleProcesses(__workersDict(ppt))).
+	ProcessPool_mem(ppt)
+	+
+	sum wpid:Nat,working:Bool.r_set__working1(wpid, working). 
+       ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), mapSetWorking(wpid, working, __workersDict(ppt)), __draining(ppt)))
+	+
+	r_getFreeSlots( max(0, __maxSize(ppt) -  mapGetNumWorkingProcesses(__workersDict(ppt) ) )). % DONE: debug here why Int2Nat(-1)
+      ProcessPool_mem(ppt)
+	+ 
+	r___cleanDeadProcesses.
+	ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), cleanDeadWorkers(__workersDict(ppt)), __draining(ppt)))
+	+
+	r_getDraining(__draining(ppt)).
+	ProcessPool_mem(ppt)
+%	+
+%	r_getStopEvent(__stopEvent(ppt)). 
+%	ProcessPool_mem(ppt)
+	+
+	r_getWorkersDict(__workersDict(ppt)).
+	ProcessPool_mem(ppt)
+	+
+
+	sum newWorker:Worker.r_addWorker(newWorker).
+        ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), __workersDict(ppt)<|newWorker, __draining(ppt)))
+%	+
+%	sum newStopEvent:Bool.r_setStopEvent(newStopEvent).
+%	ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), __workersDict(ppt), __draining(ppt), newStopEvent))
+	+
+	sum wpid:Nat.r_setDead1(wpid).
+	ProcessPool_mem(processPoolTuple(__minSize(ppt), __maxSize(ppt), __maxQueuedRequests(ppt), mapSetDead(wpid, __workersDict(ppt)), __draining(ppt)))
+;
+
+
+proc __prListLock =  
+	r__prListLock_acquire.
+	r__prListLock_release.
+__prListLock
+;
+
+
+% ProcessPool method
+proc ProcessPool_getNumWorkingProcesses = 
+  c_r_getNumWorkingProcesses.
+  s__prListLock_acquire. 
+    sum wp:Nat.s_getNumWorkingProcesses(wp).
+  s__prListLock_release.
+  r_s_getNumWorkingProcesses(wp).
+ProcessPool_getNumWorkingProcesses
+;
+
+% ProcessPool method
+proc ProcessPool_getNumIdleProcesses = 
+  c_r_getNumIdleProcesses.
+  s__prListLock_acquire. 
+    sum wp:Nat.s_getNumIdleProcesses(wp).
+  s__prListLock_release.
+r_s_getNumIdleProcesses(wp).
+ProcessPool_getNumIdleProcesses
+;
+
+act internal, taskCallback;
+
+proc ProcessPool___backgroundProcess =  % for daemonize
+  sum __draining:Bool.s_getDraining(__draining).
+  (!__draining) -> 
+    (
+      ProcessPool_processResults
+    ).ProcessPool___backgroundProcess <> return;
+
+proc ProcessPool_processResults = 
+  ProcessPool__cleanDeadProcesses.
+  sum pqSize:Nat.s___pendingQueueSize(pqSize).
+  ((pqSize!=0) -> (
+		    ProcessPool__spawnNeededWorkingProcesses
+		    )
+  <> internal). 
+  sum rqSize:Nat.s___resultsQueueSize(rqSize).
+  ((rqSize!=0) -> (
+  sum resultsTask:Task.s___resultsQueueGet(resultsTask).  
+		  taskCallback.ProcessPool_processResults
+		
+   ) <> return )
+;
+
+
+% END ProcessPool processes ========
+
+
+%% ============ START WorkingProcess
+act r_isWorking, s_isWorking, isWorking:Nat#Bool;
+act r_taskProcessed, s_taskProcessed, taskProcessed:Nat#Nat;
+act r_runWatchdogThread, s_runWatchdogThread, runWatchdogThread:Nat#Nat;
+act doSomethingWatchdog:Nat#Nat;
+act doSomethingWorkingProcess;
+act r_set__working, r_set__working1, s_set__working, set__working:Nat#Bool;
+act r_runProcessThread, s_runProcessThread, runProcessThread:Nat#Nat;
+act r_setTask, s_setTask, setTask:Nat#Task;
+% act processTask, createProcessThread, 
+act return;
+act r_increaseTaskCounter, s_increaseTaskCounter, increaseTaskCounter:Nat;
+act r_getStopEvent, s_getStopEvent, getStopEvent:Bool; 
+act r_clearTask, s_clearTask, clearTask:Nat;
+% act r_joinProcessThread, s_joinProcessThread, joinProcessThread;
+act r___pendingQueueGet, s___pendingQueueGet, __pendingQueueGet:Task;
+act r___pendingQueuePut, s___pendingQueuePut, __pendingQueuePut:Task;
+% act r___pendingQueuePut_return, s___pendingQueuePut_return, __pendingQueuePut_return:ReturnMessage;
+
+act r___resultsQueuePut, s___resultsQueuePut, __resultsQueuePut:Task;
+act r___resultsQueueGet, s___resultsQueueGet, __resultsQueueGet:Task;
+
+act r___pendingQueueSize, s___pendingQueueSize, __pendingQueueSize:Nat;
+act r___resultsQueueSize, s___resultsQueueSize, ___resultsQueueSize:Nat;
+act r_setStopEvent, s_setStopEvent, setStopEvent:Bool;
+
+%%% ============= START Memory for queueues, these are shared between the ProcessPool and the Workers, this is how they communicate
+
+proc Queues_mem(__pendingQueue:List(Task),__resultsQueue:List(Task), __maxPendingQueue:Nat) =   
+   (__pendingQueue!=[])-> r___pendingQueueGet(head(__pendingQueue)). 
+    Queues_mem(tail(__pendingQueue), __resultsQueue, __maxPendingQueue)
+  +
+  (__pendingQueue==[])-> r___pendingQueueGet(None). 
+    Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue)
+   + 
+   sum newTask:Task.r___resultsQueuePut(newTask).
+    Queues_mem(__pendingQueue, __resultsQueue<|newTask, __maxPendingQueue) 
+      +
+    r___pendingQueueSize(#__pendingQueue).
+    Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue) 
+      +
+    r___resultsQueueSize(#__resultsQueue).
+    Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue) 
+      +
+%  pendingQueue will block putting elements beyond the max, doesn't raise exception!!!! Because blocking = True in the implementation by default
+%  (s___pendingQueuePut_return(S_FULL).Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue))  <> 
+%    (s___pendingQueuePut_return(S_OK).Queues_mem(__pendingQueue<|newTask, __resultsQueue, __maxPendingQueue))
+    (__maxPendingQueue> #__pendingQueue) -> 
+    sum newTask:Task.r___pendingQueuePut(newTask).Queues_mem(__pendingQueue<|newTask, __resultsQueue, __maxPendingQueue)
+    
+    +
+    
+% does it block if there is nothing in the queue, or should I just return None?
+% CHECKED, IT'S BLOCKING, so just commented these below!!!!
+ 
+%  (__resultsQueue==[])-> r___resultsQueueGet(None).  
+%    Queues_mem(__pendingQueue, __resultsQueue, __maxPendingQueue)
+%     +
+   (__resultsQueue!=[])-> r___resultsQueueGet(head(__resultsQueue)). 
+    Queues_mem(__pendingQueue, tail(__resultsQueue), __maxPendingQueue)
+    
+;
+
+%%% ============= END Memory for queueues
+
+% BEGIN WorkingProcess processes
+% 
+%%% WorkingProcess Memory
+
+sort WorkingProcessTuple = struct workingProcessTuple(wpid:Nat, __working:Bool,__taskCounter:Nat,__watchdogThread:Nat, __processThread:Nat,task:Task);
+
+act r_setDead, r_setDead1, r_setDead2, s_setDead, setDead:Nat;
+
+proc WorkingProcess_mem(wpt:WorkingProcessTuple) = 
+      r_isWorking(wpid(wpt),__working(wpt)). 
+      WorkingProcess_mem(wpt)
+    +
+      r_taskProcessed(wpid(wpt),__taskCounter(wpt)). % tell how many tasks have been processed so far
+      WorkingProcess_mem(wpt)
+    +
+       sum working:Bool.r_set__working(wpid(wpt), working). 
+       WorkingProcess_mem(workingProcessTuple(wpid(wpt), working, __taskCounter(wpt), __watchdogThread(wpt), __processThread(wpt), task(wpt)))
+    +
+      sum newTask:Task.r_setTask(wpid(wpt), newTask).
+     WorkingProcess_mem(workingProcessTuple(wpid(wpt), __working(wpt), __taskCounter(wpt), __watchdogThread(wpt), __processThread(wpt), newTask))
+    +
+      r_increaseTaskCounter(wpid(wpt)). 
+     WorkingProcess_mem(workingProcessTuple(wpid(wpt), __working(wpt), (__taskCounter(wpt)+1), __watchdogThread(wpt), __processThread(wpt), task(wpt)))
+    + 
+     r_clearTask(wpid(wpt)).
+    WorkingProcess_mem(workingProcessTuple(wpid(wpt), __working(wpt), __taskCounter(wpt), __watchdogThread(wpt), __processThread(wpt), None))
+    +
+    r_setDead(wpid(wpt)).WorkingProcess_mem(workingProcessTuple(wpid(wpt),false,0,1,1,None))
+;
+
+proc WatchdogThread(wpid:Nat, wdtid:Nat) = doSomethingWatchdog(wpid,wdtid).WatchdogThread(wpid,wdtid);  
+
+
+act s_forkProcessThread, r_forkProcessThread, forkProcessThread:Nat#Nat;
+act s_joinProcessThread, r_joinProcessThread, joinProcessThread:Nat#Nat;
+
+act processTask:Nat;
+
+proc ProcessThread(wpid:Nat, ptid:Nat)= 
+    r_forkProcessThread(wpid,ptid).
+	runProcessThread(wpid,ptid).processTask(ptid).
+    r_joinProcessThread(wpid,ptid)
+.ProcessThread(wpid, ptid)
+; 
+
+
+proc WorkingProcess(wpid:Nat) = 
+WorkingProcess_start(wpid) || WorkingProcess_mem(workingProcessTuple(wpid,false,0,1,1,None));
+
+%WorkingProcess_start(wpid:Nat) = s_runWatchdogThread(wpid, 1);
+
+% TODO: revert to this, for now let's ignore watchdog thread
+% proc WorkingProcess_start(wpid:Nat) = r_activateWorkingProcess(wpid).runWorkingProcess.WatchdogThread(wpid, 1) || 
+act runWorkingProcess:Nat;
+proc WorkingProcess_start(wpid:Nat) = r_activateWorkingProcess(wpid).
+					  runWorkingProcess(wpid).
+					    WorkingProcess_while(wpid, 0).
+			  WorkingProcess_start(wpid)
+				;
+
+proc WorkingProcess_while(wpid:Nat, idleLoopCount:Nat) = 
+		sum draining:Bool.s_getDraining(draining). 
+		(idleLoopCount >= 3 || draining) -> s_setDead(wpid).return <> ( % I have set idleLoopCount to smaller value = 3 instead of 10 )
+			sum taskFromQueue:Task.s___pendingQueueGet(taskFromQueue). 
+			(taskFromQueue!=None) -> (
+				 s_clearTask(wpid).
+				 s_set__working(wpid, true).
+				 s_setTask(wpid, taskFromQueue). 
+				 s_forkProcessThread(wpid,wpid+10).
+				 s_joinProcessThread(wpid,wpid+10).
+      %             if not self.task.taskResults() and not self.task.taskException():
+				 s___resultsQueuePut(task(id(taskFromQueue), true,  taskFunction(taskFromQueue))).
+				 s_increaseTaskCounter(wpid).
+				 s_set__working(wpid, false)   
+				). WorkingProcess_while(wpid, 0)
+				<> WorkingProcess_while(wpid, idleLoopCount+1) 
+		)		;
+				    
+% END WorkingProcess processes
+
+
+
+% created: 2014-09-17 13:15:33.993
+
+%====== MONITOR PART GENERATED ==============
+% Original formula:[true*.  __pendingQueueSize(__queueSize) . (! c__createAndQueueTask(task(2,false,RegisterFile)) )*. r__getNumWorkingProcesses(0). (! ( createWorkingProcess(1) || c__createAndQueueTask(task(2,false,RegisterFile)) ))*. c__createAndQueueTask(task(2,false,RegisterFile)) ] false
+% ============================
+% Modified formula:([true+][__pendingQueueSize(__queueSize)]([(! c__createAndQueueTask(task(2,false ,RegisterFile)))+][r__getNumWorkingProcesses(0)]([(! (createWorkingProcess(1)||c__createAndQueueTask(task(2,false ,RegisterFile))))+][c__createAndQueueTask(task(2,false ,RegisterFile))]false && [c__createAndQueueTask(task(2,false ,RegisterFile))]false )&& [r__getNumWorkingProcesses(0)]([(! (createWorkingProcess(1)||c__createAndQueueTask(task(2,false ,RegisterFile))))+][c__createAndQueueTask(task(2,false ,RegisterFile))]false && [c__createAndQueueTask(task(2,false ,RegisterFile))]false ))&& [__pendingQueueSize(__queueSize)]([(! c__createAndQueueTask(task(2,false ,RegisterFile)))+][r__getNumWorkingProcesses(0)]([(! (createWorkingProcess(1)||c__createAndQueueTask(task(2,false ,RegisterFile))))+][c__createAndQueueTask(task(2,false ,RegisterFile))]false && [c__createAndQueueTask(task(2,false ,RegisterFile))]false )&& [r__getNumWorkingProcesses(0)]([(! (createWorkingProcess(1)||c__createAndQueueTask(task(2,false ,
+% RegisterFile))))+][c__createAndQueueTask(task(2,false ,RegisterFile))]false && [c__createAndQueueTask(task(2,false ,RegisterFile))]false )))
+% ============================
+act error ;
+sort Action = struct r__getNumIdleProcesses_mon(r__getNumIdleProcesses_arg1:Nat)
+ | getNumWorkingProcesses_mon(getNumWorkingProcesses_arg1:Nat)
+ | getStopEvent_mon(getStopEvent_arg1:Bool)
+ | return_mon
+ | doSomethingWatchdog_mon(doSomethingWatchdog_arg1:Nat,doSomethingWatchdog_arg2:Nat)
+ | getNumIdleProcesses_mon(getNumIdleProcesses_arg1:Nat)
+ | __pendingQueueGet_mon(__pendingQueueGet_arg1:Task)
+ | createWorkingProcess_mon(createWorkingProcess_arg1:Nat)
+ | getQueueSize_mon(getQueueSize_arg1:Nat)
+ | joinProcessThread_mon(joinProcessThread_arg1:Nat,joinProcessThread_arg2:Nat)
+ | __resultsQueueGet_mon(__resultsQueueGet_arg1:Task)
+ | __pendingQueuePut_mon(__pendingQueuePut_arg1:Task)
+ | increaseTaskCounter_mon(increaseTaskCounter_arg1:Nat)
+ | time_sleep_mon
+ | getRequestsPerCycle_mon(getRequestsPerCycle_arg1:Nat)
+ | __cleanDeadProcesses_mon
+ | isWorking_mon(isWorking_arg1:Nat,isWorking_arg2:Bool)
+ | __resultsQueuePut_mon(__resultsQueuePut_arg1:Task)
+ | set__working_mon(set__working_arg1:Nat,set__working_arg2:Bool)
+ | taskCallback_mon
+ | getMaxSize_mon(getMaxSize_arg1:Nat)
+ | c__createAndQueueTask_mon(c__createAndQueueTask_arg1:Task)
+ | clearTask_mon(clearTask_arg1:Nat)
+ | setTask_mon(setTask_arg1:Nat,setTask_arg2:Task)
+ | runProcessThread_mon(runProcessThread_arg1:Nat,runProcessThread_arg2:Nat)
+ | getDraining_mon(getDraining_arg1:Bool)
+ | c__getNumWorkingProcesses_mon
+ | getRequest_mon(getRequest_arg1:Task)
+ | getMaxProcess_mon(getMaxProcess_arg1:Nat)
+ | getMinSize_mon(getMinSize_arg1:Nat)
+ | RequestExecutingAgent_return_mon
+ | ___resultsQueueSize_mon(___resultsQueueSize_arg1:Nat)
+ | activateWorkingProcess_mon(activateWorkingProcess_arg1:Nat)
+ | addWorker_mon(addWorker_arg1:Worker)
+ | getWorkersDict_mon(getWorkersDict_arg1:List(Worker))
+ | getMinProcess_mon(getMinProcess_arg1:Nat)
+ | internal_mon
+ | __prListLock_release_mon
+ | setDead_mon(setDead_arg1:Nat)
+ | c__getNumIdleProcesses_mon
+ | __pendingQueueSize_mon(__pendingQueueSize_arg1:Nat)
+ | runWatchdogThread_mon(runWatchdogThread_arg1:Nat,runWatchdogThread_arg2:Nat)
+ | processTask_mon(processTask_arg1:Nat)
+ | __prListLock_acquire_mon
+ | runWorkingProcess_mon(runWorkingProcess_arg1:Nat)
+ | setStopEvent_mon(setStopEvent_arg1:Bool)
+ | getFreeSlots_mon(getFreeSlots_arg1:Nat)
+ | taskProcessed_mon(taskProcessed_arg1:Nat,taskProcessed_arg2:Nat)
+ | r__getNumWorkingProcesses_mon(r__getNumWorkingProcesses_arg1:Nat)
+ | forkProcessThread_mon(forkProcessThread_arg1:Nat,forkProcessThread_arg2:Nat);
+
+act r__getNumIdleProcesses_mon,r__getNumIdleProcesses_found:Nat;
+act getNumWorkingProcesses_mon,getNumWorkingProcesses_found:Nat;
+act getStopEvent_mon,getStopEvent_found:Bool;
+act return_mon,return_found;
+act doSomethingWatchdog_mon,doSomethingWatchdog_found:Nat#Nat;
+act getNumIdleProcesses_mon,getNumIdleProcesses_found:Nat;
+act __pendingQueueGet_mon,__pendingQueueGet_found:Task;
+act createWorkingProcess_mon,createWorkingProcess_found:Nat;
+act getQueueSize_mon,getQueueSize_found:Nat;
+act joinProcessThread_mon,joinProcessThread_found:Nat#Nat;
+act __resultsQueueGet_mon,__resultsQueueGet_found:Task;
+act __pendingQueuePut_mon,__pendingQueuePut_found:Task;
+act increaseTaskCounter_mon,increaseTaskCounter_found:Nat;
+act time_sleep_mon,time_sleep_found;
+act getRequestsPerCycle_mon,getRequestsPerCycle_found:Nat;
+act __cleanDeadProcesses_mon,__cleanDeadProcesses_found;
+act isWorking_mon,isWorking_found:Nat#Bool;
+act __resultsQueuePut_mon,__resultsQueuePut_found:Task;
+act set__working_mon,set__working_found:Nat#Bool;
+act taskCallback_mon,taskCallback_found;
+act getMaxSize_mon,getMaxSize_found:Nat;
+act c__createAndQueueTask_mon,c__createAndQueueTask_found:Task;
+act clearTask_mon,clearTask_found:Nat;
+act setTask_mon,setTask_found:Nat#Task;
+act runProcessThread_mon,runProcessThread_found:Nat#Nat;
+act getDraining_mon,getDraining_found:Bool;
+act c__getNumWorkingProcesses_mon,c__getNumWorkingProcesses_found;
+act getRequest_mon,getRequest_found:Task;
+act getMaxProcess_mon,getMaxProcess_found:Nat;
+act getMinSize_mon,getMinSize_found:Nat;
+act RequestExecutingAgent_return_mon,RequestExecutingAgent_return_found;
+act ___resultsQueueSize_mon,___resultsQueueSize_found:Nat;
+act activateWorkingProcess_mon,activateWorkingProcess_found:Nat;
+act addWorker_mon,addWorker_found:Worker;
+act getWorkersDict_mon,getWorkersDict_found:List(Worker);
+act getMinProcess_mon,getMinProcess_found:Nat;
+act internal_mon,internal_found;
+act __prListLock_release_mon,__prListLock_release_found;
+act setDead_mon,setDead_found:Nat;
+act c__getNumIdleProcesses_mon,c__getNumIdleProcesses_found;
+act __pendingQueueSize_mon,__pendingQueueSize_found:Nat;
+act runWatchdogThread_mon,runWatchdogThread_found:Nat#Nat;
+act processTask_mon,processTask_found:Nat;
+act __prListLock_acquire_mon,__prListLock_acquire_found;
+act runWorkingProcess_mon,runWorkingProcess_found:Nat;
+act setStopEvent_mon,setStopEvent_found:Bool;
+act getFreeSlots_mon,getFreeSlots_found:Nat;
+act taskProcessed_mon,taskProcessed_found:Nat#Nat;
+act r__getNumWorkingProcesses_mon,r__getNumWorkingProcesses_found:Nat;
+act forkProcessThread_mon,forkProcessThread_found:Nat#Nat;
+
+sort ActionFormula = struct action(act1:Action)
+| and(phi1:ActionFormula,phi2:ActionFormula) 
+| or(phi1:ActionFormula,phi2:ActionFormula)  
+| not(ActionFormula) 
+| True 
+| False ; 
+
+map satisfy: Action # ActionFormula -> Bool;
+var c1,c2:Action;
+f,g:ActionFormula;
+eqn
+	 satisfy(c1,action(c2)) = (c1 == c2) ;	 satisfy(c1,and(f,g)) = satisfy(c1,f) && satisfy(c1,g);
+	 satisfy(c1,not(f)) = !satisfy(c1,f);
+	 satisfy(c1,or(f,g)) = satisfy(c1,f) || satisfy(c1,g);
+	 satisfy(c1,True) = true;
+	 satisfy(c1,False) = false;
+
+proc Monitor = Mon_1;
+
+proc Mon_1 = Mon_2;% just removing backets
+
+proc Mon_2 = Mon_3 + Mon_4;
+
+proc Mon_3 = Mon_5 . Mon_4;
+
+proc Mon_5 = Mon_6. Mon_5 + Mon_6;
+
+proc Mon_6 = sum arg1:Nat.(satisfy(r__getNumIdleProcesses_mon(arg1), True)) -> r__getNumIdleProcesses_mon(arg1)
+ + sum arg1:Nat.(satisfy(getNumWorkingProcesses_mon(arg1), True)) -> getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Bool.(satisfy(getStopEvent_mon(arg1), True)) -> getStopEvent_mon(arg1)
+ + (satisfy(return_mon, True)) -> return_mon
+ + sum arg1:Nat,arg2:Nat.(satisfy(doSomethingWatchdog_mon(arg1,arg2), True)) -> doSomethingWatchdog_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(getNumIdleProcesses_mon(arg1), True)) -> getNumIdleProcesses_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueueGet_mon(arg1), True)) -> __pendingQueueGet_mon(arg1)
+ + sum arg1:Nat.(satisfy(createWorkingProcess_mon(arg1), True)) -> createWorkingProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getQueueSize_mon(arg1), True)) -> getQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(joinProcessThread_mon(arg1,arg2), True)) -> joinProcessThread_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueueGet_mon(arg1), True)) -> __resultsQueueGet_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueuePut_mon(arg1), True)) -> __pendingQueuePut_mon(arg1)
+ + sum arg1:Nat.(satisfy(increaseTaskCounter_mon(arg1), True)) -> increaseTaskCounter_mon(arg1)
+ + (satisfy(time_sleep_mon, True)) -> time_sleep_mon
+ + sum arg1:Nat.(satisfy(getRequestsPerCycle_mon(arg1), True)) -> getRequestsPerCycle_mon(arg1)
+ + (satisfy(__cleanDeadProcesses_mon, True)) -> __cleanDeadProcesses_mon
+ + sum arg1:Nat,arg2:Bool.(satisfy(isWorking_mon(arg1,arg2), True)) -> isWorking_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueuePut_mon(arg1), True)) -> __resultsQueuePut_mon(arg1)
+ + sum arg1:Nat,arg2:Bool.(satisfy(set__working_mon(arg1,arg2), True)) -> set__working_mon(arg1,arg2)
+ + (satisfy(taskCallback_mon, True)) -> taskCallback_mon
+ + sum arg1:Nat.(satisfy(getMaxSize_mon(arg1), True)) -> getMaxSize_mon(arg1)
+ + sum arg1:Task.(satisfy(c__createAndQueueTask_mon(arg1), True)) -> c__createAndQueueTask_mon(arg1)
+ + sum arg1:Nat.(satisfy(clearTask_mon(arg1), True)) -> clearTask_mon(arg1)
+ + sum arg1:Nat,arg2:Task.(satisfy(setTask_mon(arg1,arg2), True)) -> setTask_mon(arg1,arg2)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runProcessThread_mon(arg1,arg2), True)) -> runProcessThread_mon(arg1,arg2)
+ + sum arg1:Bool.(satisfy(getDraining_mon(arg1), True)) -> getDraining_mon(arg1)
+ + (satisfy(c__getNumWorkingProcesses_mon, True)) -> c__getNumWorkingProcesses_mon
+ + sum arg1:Task.(satisfy(getRequest_mon(arg1), True)) -> getRequest_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMaxProcess_mon(arg1), True)) -> getMaxProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinSize_mon(arg1), True)) -> getMinSize_mon(arg1)
+ + (satisfy(RequestExecutingAgent_return_mon, True)) -> RequestExecutingAgent_return_mon
+ + sum arg1:Nat.(satisfy(___resultsQueueSize_mon(arg1), True)) -> ___resultsQueueSize_mon(arg1)
+ + sum arg1:Nat.(satisfy(activateWorkingProcess_mon(arg1), True)) -> activateWorkingProcess_mon(arg1)
+ + sum arg1:Worker.(satisfy(addWorker_mon(arg1), True)) -> addWorker_mon(arg1)
+ + sum arg1:List(Worker).(satisfy(getWorkersDict_mon(arg1), True)) -> getWorkersDict_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinProcess_mon(arg1), True)) -> getMinProcess_mon(arg1)
+ + (satisfy(internal_mon, True)) -> internal_mon
+ + (satisfy(__prListLock_release_mon, True)) -> __prListLock_release_mon
+ + sum arg1:Nat.(satisfy(setDead_mon(arg1), True)) -> setDead_mon(arg1)
+ + (satisfy(c__getNumIdleProcesses_mon, True)) -> c__getNumIdleProcesses_mon
+ + sum arg1:Nat.(satisfy(__pendingQueueSize_mon(arg1), True)) -> __pendingQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runWatchdogThread_mon(arg1,arg2), True)) -> runWatchdogThread_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(processTask_mon(arg1), True)) -> processTask_mon(arg1)
+ + (satisfy(__prListLock_acquire_mon, True)) -> __prListLock_acquire_mon
+ + sum arg1:Nat.(satisfy(runWorkingProcess_mon(arg1), True)) -> runWorkingProcess_mon(arg1)
+ + sum arg1:Bool.(satisfy(setStopEvent_mon(arg1), True)) -> setStopEvent_mon(arg1)
+ + sum arg1:Nat.(satisfy(getFreeSlots_mon(arg1), True)) -> getFreeSlots_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(taskProcessed_mon(arg1,arg2), True)) -> taskProcessed_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(r__getNumWorkingProcesses_mon(arg1), True)) -> r__getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(forkProcessThread_mon(arg1,arg2), True)) -> forkProcessThread_mon(arg1,arg2)
+;
+
+proc Mon_4 = Mon_7 . Mon_8;
+
+proc Mon_7 = sum arg1:Nat.(satisfy(r__getNumIdleProcesses_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> r__getNumIdleProcesses_mon(arg1)
+ + sum arg1:Nat.(satisfy(getNumWorkingProcesses_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Bool.(satisfy(getStopEvent_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getStopEvent_mon(arg1)
+ + (satisfy(return_mon, action(__pendingQueueSize_mon(__queueSize)))) -> return_mon
+ + sum arg1:Nat,arg2:Nat.(satisfy(doSomethingWatchdog_mon(arg1,arg2), action(__pendingQueueSize_mon(__queueSize)))) -> doSomethingWatchdog_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(getNumIdleProcesses_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getNumIdleProcesses_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueueGet_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> __pendingQueueGet_mon(arg1)
+ + sum arg1:Nat.(satisfy(createWorkingProcess_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> createWorkingProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getQueueSize_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(joinProcessThread_mon(arg1,arg2), action(__pendingQueueSize_mon(__queueSize)))) -> joinProcessThread_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueueGet_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> __resultsQueueGet_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueuePut_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> __pendingQueuePut_mon(arg1)
+ + sum arg1:Nat.(satisfy(increaseTaskCounter_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> increaseTaskCounter_mon(arg1)
+ + (satisfy(time_sleep_mon, action(__pendingQueueSize_mon(__queueSize)))) -> time_sleep_mon
+ + sum arg1:Nat.(satisfy(getRequestsPerCycle_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getRequestsPerCycle_mon(arg1)
+ + (satisfy(__cleanDeadProcesses_mon, action(__pendingQueueSize_mon(__queueSize)))) -> __cleanDeadProcesses_mon
+ + sum arg1:Nat,arg2:Bool.(satisfy(isWorking_mon(arg1,arg2), action(__pendingQueueSize_mon(__queueSize)))) -> isWorking_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueuePut_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> __resultsQueuePut_mon(arg1)
+ + sum arg1:Nat,arg2:Bool.(satisfy(set__working_mon(arg1,arg2), action(__pendingQueueSize_mon(__queueSize)))) -> set__working_mon(arg1,arg2)
+ + (satisfy(taskCallback_mon, action(__pendingQueueSize_mon(__queueSize)))) -> taskCallback_mon
+ + sum arg1:Nat.(satisfy(getMaxSize_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getMaxSize_mon(arg1)
+ + sum arg1:Task.(satisfy(c__createAndQueueTask_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> c__createAndQueueTask_mon(arg1)
+ + sum arg1:Nat.(satisfy(clearTask_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> clearTask_mon(arg1)
+ + sum arg1:Nat,arg2:Task.(satisfy(setTask_mon(arg1,arg2), action(__pendingQueueSize_mon(__queueSize)))) -> setTask_mon(arg1,arg2)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runProcessThread_mon(arg1,arg2), action(__pendingQueueSize_mon(__queueSize)))) -> runProcessThread_mon(arg1,arg2)
+ + sum arg1:Bool.(satisfy(getDraining_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getDraining_mon(arg1)
+ + (satisfy(c__getNumWorkingProcesses_mon, action(__pendingQueueSize_mon(__queueSize)))) -> c__getNumWorkingProcesses_mon
+ + sum arg1:Task.(satisfy(getRequest_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getRequest_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMaxProcess_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getMaxProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinSize_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getMinSize_mon(arg1)
+ + (satisfy(RequestExecutingAgent_return_mon, action(__pendingQueueSize_mon(__queueSize)))) -> RequestExecutingAgent_return_mon
+ + sum arg1:Nat.(satisfy(___resultsQueueSize_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> ___resultsQueueSize_mon(arg1)
+ + sum arg1:Nat.(satisfy(activateWorkingProcess_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> activateWorkingProcess_mon(arg1)
+ + sum arg1:Worker.(satisfy(addWorker_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> addWorker_mon(arg1)
+ + sum arg1:List(Worker).(satisfy(getWorkersDict_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getWorkersDict_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinProcess_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getMinProcess_mon(arg1)
+ + (satisfy(internal_mon, action(__pendingQueueSize_mon(__queueSize)))) -> internal_mon
+ + (satisfy(__prListLock_release_mon, action(__pendingQueueSize_mon(__queueSize)))) -> __prListLock_release_mon
+ + sum arg1:Nat.(satisfy(setDead_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> setDead_mon(arg1)
+ + (satisfy(c__getNumIdleProcesses_mon, action(__pendingQueueSize_mon(__queueSize)))) -> c__getNumIdleProcesses_mon
+ + sum arg1:Nat.(satisfy(__pendingQueueSize_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> __pendingQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runWatchdogThread_mon(arg1,arg2), action(__pendingQueueSize_mon(__queueSize)))) -> runWatchdogThread_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(processTask_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> processTask_mon(arg1)
+ + (satisfy(__prListLock_acquire_mon, action(__pendingQueueSize_mon(__queueSize)))) -> __prListLock_acquire_mon
+ + sum arg1:Nat.(satisfy(runWorkingProcess_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> runWorkingProcess_mon(arg1)
+ + sum arg1:Bool.(satisfy(setStopEvent_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> setStopEvent_mon(arg1)
+ + sum arg1:Nat.(satisfy(getFreeSlots_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> getFreeSlots_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(taskProcessed_mon(arg1,arg2), action(__pendingQueueSize_mon(__queueSize)))) -> taskProcessed_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(r__getNumWorkingProcesses_mon(arg1), action(__pendingQueueSize_mon(__queueSize)))) -> r__getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(forkProcessThread_mon(arg1,arg2), action(__pendingQueueSize_mon(__queueSize)))) -> forkProcessThread_mon(arg1,arg2)
+;
+
+proc Mon_8 = Mon_9;% just removing backets
+
+proc Mon_9 = Mon_10 + Mon_11;
+
+proc Mon_10 = Mon_12 . Mon_11;
+
+proc Mon_12 = Mon_13. Mon_12 + Mon_13;
+
+proc Mon_13 = Mon_14;% just removing backets
+
+proc Mon_14 = sum arg1:Nat.(satisfy(r__getNumIdleProcesses_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> r__getNumIdleProcesses_mon(arg1)
+ + sum arg1:Nat.(satisfy(getNumWorkingProcesses_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Bool.(satisfy(getStopEvent_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getStopEvent_mon(arg1)
+ + (satisfy(return_mon, not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> return_mon
+ + sum arg1:Nat,arg2:Nat.(satisfy(doSomethingWatchdog_mon(arg1,arg2), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> doSomethingWatchdog_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(getNumIdleProcesses_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getNumIdleProcesses_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueueGet_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> __pendingQueueGet_mon(arg1)
+ + sum arg1:Nat.(satisfy(createWorkingProcess_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> createWorkingProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getQueueSize_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(joinProcessThread_mon(arg1,arg2), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> joinProcessThread_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueueGet_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> __resultsQueueGet_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueuePut_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> __pendingQueuePut_mon(arg1)
+ + sum arg1:Nat.(satisfy(increaseTaskCounter_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> increaseTaskCounter_mon(arg1)
+ + (satisfy(time_sleep_mon, not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> time_sleep_mon
+ + sum arg1:Nat.(satisfy(getRequestsPerCycle_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getRequestsPerCycle_mon(arg1)
+ + (satisfy(__cleanDeadProcesses_mon, not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> __cleanDeadProcesses_mon
+ + sum arg1:Nat,arg2:Bool.(satisfy(isWorking_mon(arg1,arg2), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> isWorking_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueuePut_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> __resultsQueuePut_mon(arg1)
+ + sum arg1:Nat,arg2:Bool.(satisfy(set__working_mon(arg1,arg2), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> set__working_mon(arg1,arg2)
+ + (satisfy(taskCallback_mon, not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> taskCallback_mon
+ + sum arg1:Nat.(satisfy(getMaxSize_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getMaxSize_mon(arg1)
+ + sum arg1:Task.(satisfy(c__createAndQueueTask_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> c__createAndQueueTask_mon(arg1)
+ + sum arg1:Nat.(satisfy(clearTask_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> clearTask_mon(arg1)
+ + sum arg1:Nat,arg2:Task.(satisfy(setTask_mon(arg1,arg2), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> setTask_mon(arg1,arg2)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runProcessThread_mon(arg1,arg2), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> runProcessThread_mon(arg1,arg2)
+ + sum arg1:Bool.(satisfy(getDraining_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getDraining_mon(arg1)
+ + (satisfy(c__getNumWorkingProcesses_mon, not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> c__getNumWorkingProcesses_mon
+ + sum arg1:Task.(satisfy(getRequest_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getRequest_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMaxProcess_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getMaxProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinSize_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getMinSize_mon(arg1)
+ + (satisfy(RequestExecutingAgent_return_mon, not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> RequestExecutingAgent_return_mon
+ + sum arg1:Nat.(satisfy(___resultsQueueSize_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> ___resultsQueueSize_mon(arg1)
+ + sum arg1:Nat.(satisfy(activateWorkingProcess_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> activateWorkingProcess_mon(arg1)
+ + sum arg1:Worker.(satisfy(addWorker_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> addWorker_mon(arg1)
+ + sum arg1:List(Worker).(satisfy(getWorkersDict_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getWorkersDict_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinProcess_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getMinProcess_mon(arg1)
+ + (satisfy(internal_mon, not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> internal_mon
+ + (satisfy(__prListLock_release_mon, not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> __prListLock_release_mon
+ + sum arg1:Nat.(satisfy(setDead_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> setDead_mon(arg1)
+ + (satisfy(c__getNumIdleProcesses_mon, not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> c__getNumIdleProcesses_mon
+ + sum arg1:Nat.(satisfy(__pendingQueueSize_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> __pendingQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runWatchdogThread_mon(arg1,arg2), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> runWatchdogThread_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(processTask_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> processTask_mon(arg1)
+ + (satisfy(__prListLock_acquire_mon, not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> __prListLock_acquire_mon
+ + sum arg1:Nat.(satisfy(runWorkingProcess_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> runWorkingProcess_mon(arg1)
+ + sum arg1:Bool.(satisfy(setStopEvent_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> setStopEvent_mon(arg1)
+ + sum arg1:Nat.(satisfy(getFreeSlots_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> getFreeSlots_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(taskProcessed_mon(arg1,arg2), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> taskProcessed_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(r__getNumWorkingProcesses_mon(arg1), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> r__getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(forkProcessThread_mon(arg1,arg2), not(action(c__createAndQueueTask_mon(task(2,false,RegisterFile)))))) -> forkProcessThread_mon(arg1,arg2)
+;
+
+proc Mon_11 = Mon_15 . Mon_16;
+
+proc Mon_15 = sum arg1:Nat.(satisfy(r__getNumIdleProcesses_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> r__getNumIdleProcesses_mon(arg1)
+ + sum arg1:Nat.(satisfy(getNumWorkingProcesses_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Bool.(satisfy(getStopEvent_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getStopEvent_mon(arg1)
+ + (satisfy(return_mon, action(r__getNumWorkingProcesses_mon(0)))) -> return_mon
+ + sum arg1:Nat,arg2:Nat.(satisfy(doSomethingWatchdog_mon(arg1,arg2), action(r__getNumWorkingProcesses_mon(0)))) -> doSomethingWatchdog_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(getNumIdleProcesses_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getNumIdleProcesses_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueueGet_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> __pendingQueueGet_mon(arg1)
+ + sum arg1:Nat.(satisfy(createWorkingProcess_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> createWorkingProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getQueueSize_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(joinProcessThread_mon(arg1,arg2), action(r__getNumWorkingProcesses_mon(0)))) -> joinProcessThread_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueueGet_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> __resultsQueueGet_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueuePut_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> __pendingQueuePut_mon(arg1)
+ + sum arg1:Nat.(satisfy(increaseTaskCounter_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> increaseTaskCounter_mon(arg1)
+ + (satisfy(time_sleep_mon, action(r__getNumWorkingProcesses_mon(0)))) -> time_sleep_mon
+ + sum arg1:Nat.(satisfy(getRequestsPerCycle_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getRequestsPerCycle_mon(arg1)
+ + (satisfy(__cleanDeadProcesses_mon, action(r__getNumWorkingProcesses_mon(0)))) -> __cleanDeadProcesses_mon
+ + sum arg1:Nat,arg2:Bool.(satisfy(isWorking_mon(arg1,arg2), action(r__getNumWorkingProcesses_mon(0)))) -> isWorking_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueuePut_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> __resultsQueuePut_mon(arg1)
+ + sum arg1:Nat,arg2:Bool.(satisfy(set__working_mon(arg1,arg2), action(r__getNumWorkingProcesses_mon(0)))) -> set__working_mon(arg1,arg2)
+ + (satisfy(taskCallback_mon, action(r__getNumWorkingProcesses_mon(0)))) -> taskCallback_mon
+ + sum arg1:Nat.(satisfy(getMaxSize_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getMaxSize_mon(arg1)
+ + sum arg1:Task.(satisfy(c__createAndQueueTask_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> c__createAndQueueTask_mon(arg1)
+ + sum arg1:Nat.(satisfy(clearTask_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> clearTask_mon(arg1)
+ + sum arg1:Nat,arg2:Task.(satisfy(setTask_mon(arg1,arg2), action(r__getNumWorkingProcesses_mon(0)))) -> setTask_mon(arg1,arg2)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runProcessThread_mon(arg1,arg2), action(r__getNumWorkingProcesses_mon(0)))) -> runProcessThread_mon(arg1,arg2)
+ + sum arg1:Bool.(satisfy(getDraining_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getDraining_mon(arg1)
+ + (satisfy(c__getNumWorkingProcesses_mon, action(r__getNumWorkingProcesses_mon(0)))) -> c__getNumWorkingProcesses_mon
+ + sum arg1:Task.(satisfy(getRequest_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getRequest_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMaxProcess_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getMaxProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinSize_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getMinSize_mon(arg1)
+ + (satisfy(RequestExecutingAgent_return_mon, action(r__getNumWorkingProcesses_mon(0)))) -> RequestExecutingAgent_return_mon
+ + sum arg1:Nat.(satisfy(___resultsQueueSize_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> ___resultsQueueSize_mon(arg1)
+ + sum arg1:Nat.(satisfy(activateWorkingProcess_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> activateWorkingProcess_mon(arg1)
+ + sum arg1:Worker.(satisfy(addWorker_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> addWorker_mon(arg1)
+ + sum arg1:List(Worker).(satisfy(getWorkersDict_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getWorkersDict_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinProcess_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getMinProcess_mon(arg1)
+ + (satisfy(internal_mon, action(r__getNumWorkingProcesses_mon(0)))) -> internal_mon
+ + (satisfy(__prListLock_release_mon, action(r__getNumWorkingProcesses_mon(0)))) -> __prListLock_release_mon
+ + sum arg1:Nat.(satisfy(setDead_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> setDead_mon(arg1)
+ + (satisfy(c__getNumIdleProcesses_mon, action(r__getNumWorkingProcesses_mon(0)))) -> c__getNumIdleProcesses_mon
+ + sum arg1:Nat.(satisfy(__pendingQueueSize_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> __pendingQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runWatchdogThread_mon(arg1,arg2), action(r__getNumWorkingProcesses_mon(0)))) -> runWatchdogThread_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(processTask_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> processTask_mon(arg1)
+ + (satisfy(__prListLock_acquire_mon, action(r__getNumWorkingProcesses_mon(0)))) -> __prListLock_acquire_mon
+ + sum arg1:Nat.(satisfy(runWorkingProcess_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> runWorkingProcess_mon(arg1)
+ + sum arg1:Bool.(satisfy(setStopEvent_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> setStopEvent_mon(arg1)
+ + sum arg1:Nat.(satisfy(getFreeSlots_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> getFreeSlots_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(taskProcessed_mon(arg1,arg2), action(r__getNumWorkingProcesses_mon(0)))) -> taskProcessed_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(r__getNumWorkingProcesses_mon(arg1), action(r__getNumWorkingProcesses_mon(0)))) -> r__getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(forkProcessThread_mon(arg1,arg2), action(r__getNumWorkingProcesses_mon(0)))) -> forkProcessThread_mon(arg1,arg2)
+;
+
+proc Mon_16 = Mon_17;% just removing backets
+
+proc Mon_17 = Mon_18 + Mon_19;
+
+proc Mon_18 = Mon_20 . Mon_19;
+
+proc Mon_20 = Mon_21. Mon_20 + Mon_21;
+
+proc Mon_21 = Mon_22;% just removing backets
+
+proc Mon_22 = sum arg1:Nat.(satisfy(r__getNumIdleProcesses_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> r__getNumIdleProcesses_mon(arg1)
+ + sum arg1:Nat.(satisfy(getNumWorkingProcesses_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Bool.(satisfy(getStopEvent_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getStopEvent_mon(arg1)
+ + (satisfy(return_mon, not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> return_mon
+ + sum arg1:Nat,arg2:Nat.(satisfy(doSomethingWatchdog_mon(arg1,arg2), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> doSomethingWatchdog_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(getNumIdleProcesses_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getNumIdleProcesses_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueueGet_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> __pendingQueueGet_mon(arg1)
+ + sum arg1:Nat.(satisfy(createWorkingProcess_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> createWorkingProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getQueueSize_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(joinProcessThread_mon(arg1,arg2), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> joinProcessThread_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueueGet_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> __resultsQueueGet_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueuePut_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> __pendingQueuePut_mon(arg1)
+ + sum arg1:Nat.(satisfy(increaseTaskCounter_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> increaseTaskCounter_mon(arg1)
+ + (satisfy(time_sleep_mon, not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> time_sleep_mon
+ + sum arg1:Nat.(satisfy(getRequestsPerCycle_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getRequestsPerCycle_mon(arg1)
+ + (satisfy(__cleanDeadProcesses_mon, not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> __cleanDeadProcesses_mon
+ + sum arg1:Nat,arg2:Bool.(satisfy(isWorking_mon(arg1,arg2), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> isWorking_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueuePut_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> __resultsQueuePut_mon(arg1)
+ + sum arg1:Nat,arg2:Bool.(satisfy(set__working_mon(arg1,arg2), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> set__working_mon(arg1,arg2)
+ + (satisfy(taskCallback_mon, not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> taskCallback_mon
+ + sum arg1:Nat.(satisfy(getMaxSize_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getMaxSize_mon(arg1)
+ + sum arg1:Task.(satisfy(c__createAndQueueTask_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> c__createAndQueueTask_mon(arg1)
+ + sum arg1:Nat.(satisfy(clearTask_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> clearTask_mon(arg1)
+ + sum arg1:Nat,arg2:Task.(satisfy(setTask_mon(arg1,arg2), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> setTask_mon(arg1,arg2)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runProcessThread_mon(arg1,arg2), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> runProcessThread_mon(arg1,arg2)
+ + sum arg1:Bool.(satisfy(getDraining_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getDraining_mon(arg1)
+ + (satisfy(c__getNumWorkingProcesses_mon, not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> c__getNumWorkingProcesses_mon
+ + sum arg1:Task.(satisfy(getRequest_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getRequest_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMaxProcess_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getMaxProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinSize_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getMinSize_mon(arg1)
+ + (satisfy(RequestExecutingAgent_return_mon, not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> RequestExecutingAgent_return_mon
+ + sum arg1:Nat.(satisfy(___resultsQueueSize_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> ___resultsQueueSize_mon(arg1)
+ + sum arg1:Nat.(satisfy(activateWorkingProcess_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> activateWorkingProcess_mon(arg1)
+ + sum arg1:Worker.(satisfy(addWorker_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> addWorker_mon(arg1)
+ + sum arg1:List(Worker).(satisfy(getWorkersDict_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getWorkersDict_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinProcess_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getMinProcess_mon(arg1)
+ + (satisfy(internal_mon, not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> internal_mon
+ + (satisfy(__prListLock_release_mon, not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> __prListLock_release_mon
+ + sum arg1:Nat.(satisfy(setDead_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> setDead_mon(arg1)
+ + (satisfy(c__getNumIdleProcesses_mon, not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> c__getNumIdleProcesses_mon
+ + sum arg1:Nat.(satisfy(__pendingQueueSize_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> __pendingQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runWatchdogThread_mon(arg1,arg2), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> runWatchdogThread_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(processTask_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> processTask_mon(arg1)
+ + (satisfy(__prListLock_acquire_mon, not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> __prListLock_acquire_mon
+ + sum arg1:Nat.(satisfy(runWorkingProcess_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> runWorkingProcess_mon(arg1)
+ + sum arg1:Bool.(satisfy(setStopEvent_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> setStopEvent_mon(arg1)
+ + sum arg1:Nat.(satisfy(getFreeSlots_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> getFreeSlots_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(taskProcessed_mon(arg1,arg2), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> taskProcessed_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(r__getNumWorkingProcesses_mon(arg1), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> r__getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(forkProcessThread_mon(arg1,arg2), not(or(action(createWorkingProcess_mon(1)) , action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))))) -> forkProcessThread_mon(arg1,arg2)
+;
+
+proc Mon_19 = Mon_25 . Mon_26;
+
+proc Mon_25 = sum arg1:Nat.(satisfy(r__getNumIdleProcesses_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> r__getNumIdleProcesses_mon(arg1)
+ + sum arg1:Nat.(satisfy(getNumWorkingProcesses_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Bool.(satisfy(getStopEvent_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getStopEvent_mon(arg1)
+ + (satisfy(return_mon, action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> return_mon
+ + sum arg1:Nat,arg2:Nat.(satisfy(doSomethingWatchdog_mon(arg1,arg2), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> doSomethingWatchdog_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(getNumIdleProcesses_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getNumIdleProcesses_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueueGet_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> __pendingQueueGet_mon(arg1)
+ + sum arg1:Nat.(satisfy(createWorkingProcess_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> createWorkingProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getQueueSize_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(joinProcessThread_mon(arg1,arg2), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> joinProcessThread_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueueGet_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> __resultsQueueGet_mon(arg1)
+ + sum arg1:Task.(satisfy(__pendingQueuePut_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> __pendingQueuePut_mon(arg1)
+ + sum arg1:Nat.(satisfy(increaseTaskCounter_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> increaseTaskCounter_mon(arg1)
+ + (satisfy(time_sleep_mon, action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> time_sleep_mon
+ + sum arg1:Nat.(satisfy(getRequestsPerCycle_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getRequestsPerCycle_mon(arg1)
+ + (satisfy(__cleanDeadProcesses_mon, action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> __cleanDeadProcesses_mon
+ + sum arg1:Nat,arg2:Bool.(satisfy(isWorking_mon(arg1,arg2), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> isWorking_mon(arg1,arg2)
+ + sum arg1:Task.(satisfy(__resultsQueuePut_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> __resultsQueuePut_mon(arg1)
+ + sum arg1:Nat,arg2:Bool.(satisfy(set__working_mon(arg1,arg2), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> set__working_mon(arg1,arg2)
+ + (satisfy(taskCallback_mon, action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> taskCallback_mon
+ + sum arg1:Nat.(satisfy(getMaxSize_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getMaxSize_mon(arg1)
+ + sum arg1:Task.(satisfy(c__createAndQueueTask_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> c__createAndQueueTask_mon(arg1)
+ + sum arg1:Nat.(satisfy(clearTask_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> clearTask_mon(arg1)
+ + sum arg1:Nat,arg2:Task.(satisfy(setTask_mon(arg1,arg2), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> setTask_mon(arg1,arg2)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runProcessThread_mon(arg1,arg2), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> runProcessThread_mon(arg1,arg2)
+ + sum arg1:Bool.(satisfy(getDraining_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getDraining_mon(arg1)
+ + (satisfy(c__getNumWorkingProcesses_mon, action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> c__getNumWorkingProcesses_mon
+ + sum arg1:Task.(satisfy(getRequest_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getRequest_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMaxProcess_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getMaxProcess_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinSize_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getMinSize_mon(arg1)
+ + (satisfy(RequestExecutingAgent_return_mon, action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> RequestExecutingAgent_return_mon
+ + sum arg1:Nat.(satisfy(___resultsQueueSize_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> ___resultsQueueSize_mon(arg1)
+ + sum arg1:Nat.(satisfy(activateWorkingProcess_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> activateWorkingProcess_mon(arg1)
+ + sum arg1:Worker.(satisfy(addWorker_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> addWorker_mon(arg1)
+ + sum arg1:List(Worker).(satisfy(getWorkersDict_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getWorkersDict_mon(arg1)
+ + sum arg1:Nat.(satisfy(getMinProcess_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getMinProcess_mon(arg1)
+ + (satisfy(internal_mon, action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> internal_mon
+ + (satisfy(__prListLock_release_mon, action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> __prListLock_release_mon
+ + sum arg1:Nat.(satisfy(setDead_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> setDead_mon(arg1)
+ + (satisfy(c__getNumIdleProcesses_mon, action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> c__getNumIdleProcesses_mon
+ + sum arg1:Nat.(satisfy(__pendingQueueSize_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> __pendingQueueSize_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(runWatchdogThread_mon(arg1,arg2), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> runWatchdogThread_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(processTask_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> processTask_mon(arg1)
+ + (satisfy(__prListLock_acquire_mon, action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> __prListLock_acquire_mon
+ + sum arg1:Nat.(satisfy(runWorkingProcess_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> runWorkingProcess_mon(arg1)
+ + sum arg1:Bool.(satisfy(setStopEvent_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> setStopEvent_mon(arg1)
+ + sum arg1:Nat.(satisfy(getFreeSlots_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> getFreeSlots_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(taskProcessed_mon(arg1,arg2), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> taskProcessed_mon(arg1,arg2)
+ + sum arg1:Nat.(satisfy(r__getNumWorkingProcesses_mon(arg1), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> r__getNumWorkingProcesses_mon(arg1)
+ + sum arg1:Nat,arg2:Nat.(satisfy(forkProcessThread_mon(arg1,arg2), action(c__createAndQueueTask_mon(task(2,false,RegisterFile))))) -> forkProcessThread_mon(arg1,arg2)
+;
+
+proc Mon_26 = error;
+
+init allow({error,r__getNumIdleProcesses_found,
+getNumWorkingProcesses_found,
+getStopEvent_found,
+return_found,
+doSomethingWatchdog_found,
+getNumIdleProcesses_found,
+__pendingQueueGet_found,
+createWorkingProcess_found,
+getQueueSize_found,
+joinProcessThread_found,
+__resultsQueueGet_found,
+__pendingQueuePut_found,
+increaseTaskCounter_found,
+time_sleep_found,
+getRequestsPerCycle_found,
+__cleanDeadProcesses_found,
+isWorking_found,
+__resultsQueuePut_found,
+set__working_found,
+taskCallback_found,
+getMaxSize_found,
+c__createAndQueueTask_found,
+clearTask_found,
+setTask_found,
+runProcessThread_found,
+getDraining_found,
+c__getNumWorkingProcesses_found,
+getRequest_found,
+getMaxProcess_found,
+getMinSize_found,
+RequestExecutingAgent_return_found,
+___resultsQueueSize_found,
+activateWorkingProcess_found,
+addWorker_found,
+getWorkersDict_found,
+getMinProcess_found,
+internal_found,
+__prListLock_release_found,
+setDead_found,
+c__getNumIdleProcesses_found,
+__pendingQueueSize_found,
+runWatchdogThread_found,
+processTask_found,
+__prListLock_acquire_found,
+runWorkingProcess_found,
+setStopEvent_found,
+getFreeSlots_found,
+taskProcessed_found,
+r__getNumWorkingProcesses_found,
+forkProcessThread_found}, 
+ comm({	 r__getNumIdleProcesses | r__getNumIdleProcesses_mon -> r__getNumIdleProcesses_found
+,
+	 getNumWorkingProcesses | getNumWorkingProcesses_mon -> getNumWorkingProcesses_found
+,
+	 getStopEvent | getStopEvent_mon -> getStopEvent_found
+,
+	 return | return_mon -> return_found
+,
+	 doSomethingWatchdog | doSomethingWatchdog_mon -> doSomethingWatchdog_found
+,
+	 getNumIdleProcesses | getNumIdleProcesses_mon -> getNumIdleProcesses_found
+,
+	 __pendingQueueGet | __pendingQueueGet_mon -> __pendingQueueGet_found
+,
+	 createWorkingProcess | createWorkingProcess_mon -> createWorkingProcess_found
+,
+	 getQueueSize | getQueueSize_mon -> getQueueSize_found
+,
+	 joinProcessThread | joinProcessThread_mon -> joinProcessThread_found
+,
+	 __resultsQueueGet | __resultsQueueGet_mon -> __resultsQueueGet_found
+,
+	 __pendingQueuePut | __pendingQueuePut_mon -> __pendingQueuePut_found
+,
+	 increaseTaskCounter | increaseTaskCounter_mon -> increaseTaskCounter_found
+,
+	 time_sleep | time_sleep_mon -> time_sleep_found
+,
+	 getRequestsPerCycle | getRequestsPerCycle_mon -> getRequestsPerCycle_found
+,
+	 __cleanDeadProcesses | __cleanDeadProcesses_mon -> __cleanDeadProcesses_found
+,
+	 isWorking | isWorking_mon -> isWorking_found
+,
+	 __resultsQueuePut | __resultsQueuePut_mon -> __resultsQueuePut_found
+,
+	 set__working | set__working_mon -> set__working_found
+,
+	 taskCallback | taskCallback_mon -> taskCallback_found
+,
+	 getMaxSize | getMaxSize_mon -> getMaxSize_found
+,
+	 c__createAndQueueTask | c__createAndQueueTask_mon -> c__createAndQueueTask_found
+,
+	 clearTask | clearTask_mon -> clearTask_found
+,
+	 setTask | setTask_mon -> setTask_found
+,
+	 runProcessThread | runProcessThread_mon -> runProcessThread_found
+,
+	 getDraining | getDraining_mon -> getDraining_found
+,
+	 c__getNumWorkingProcesses | c__getNumWorkingProcesses_mon -> c__getNumWorkingProcesses_found
+,
+	 getRequest | getRequest_mon -> getRequest_found
+,
+	 getMaxProcess | getMaxProcess_mon -> getMaxProcess_found
+,
+	 getMinSize | getMinSize_mon -> getMinSize_found
+,
+	 RequestExecutingAgent_return | RequestExecutingAgent_return_mon -> RequestExecutingAgent_return_found
+,
+	 ___resultsQueueSize | ___resultsQueueSize_mon -> ___resultsQueueSize_found
+,
+	 activateWorkingProcess | activateWorkingProcess_mon -> activateWorkingProcess_found
+,
+	 addWorker | addWorker_mon -> addWorker_found
+,
+	 getWorkersDict | getWorkersDict_mon -> getWorkersDict_found
+,
+	 getMinProcess | getMinProcess_mon -> getMinProcess_found
+,
+	 internal | internal_mon -> internal_found
+,
+	 __prListLock_release | __prListLock_release_mon -> __prListLock_release_found
+,
+	 setDead | setDead_mon -> setDead_found
+,
+	 c__getNumIdleProcesses | c__getNumIdleProcesses_mon -> c__getNumIdleProcesses_found
+,
+	 __pendingQueueSize | __pendingQueueSize_mon -> __pendingQueueSize_found
+,
+	 runWatchdogThread | runWatchdogThread_mon -> runWatchdogThread_found
+,
+	 processTask | processTask_mon -> processTask_found
+,
+	 __prListLock_acquire | __prListLock_acquire_mon -> __prListLock_acquire_found
+,
+	 runWorkingProcess | runWorkingProcess_mon -> runWorkingProcess_found
+,
+	 setStopEvent | setStopEvent_mon -> setStopEvent_found
+,
+	 getFreeSlots | getFreeSlots_mon -> getFreeSlots_found
+,
+	 taskProcessed | taskProcessed_mon -> taskProcessed_found
+,
+	 r__getNumWorkingProcesses | r__getNumWorkingProcesses_mon -> r__getNumWorkingProcesses_found
+,
+	 forkProcessThread | forkProcessThread_mon -> forkProcessThread_found
+
+},
+  Monitor  || allow({
+getMaxSize, getMinSize,
+	  getNumWorkingProcesses,
+	  getNumIdleProcesses,
+	  __prListLock_acquire,
+	  __prListLock_release,
+	  isWorking,
+	  taskProcessed,
+	  runWatchdogThread,
+	  set__working,
+	  setTask,
+	  increaseTaskCounter,
+	  runProcessThread,
+	  getStopEvent,
+	  clearTask,
+	  joinProcessThread,
+	  __pendingQueueGet,
+	  __resultsQueuePut,
+	  __pendingQueueSize,
+	  setStopEvent,
+	  getRequestsPerCycle,
+	  getMinProcess,
+	  getMaxProcess,
+	  getQueueSize,
+	  getRequest,
+	  return,
+	  c__getNumWorkingProcesses,
+	  r__getNumWorkingProcesses,
+	  c__getNumIdleProcesses,
+	  r__getNumIdleProcesses,
+	  runWorkingProcess,
+	  processTask,
+	  doSomethingWatchdog,
+	  RequestExecutingAgent_return,
+	  getFreeSlots,
+	  c__createAndQueueTask, 
+%	  r__createAndQueueTask,
+	  time_sleep,
+	  __pendingQueuePut,
+	  __cleanDeadProcesses,
+	  getDraining,
+	  getWorkersDict,
+	  createWorkingProcess,
+% 	  isAlive,
+	  addWorker,
+	  internal,
+	  __resultsQueueGet,
+	  taskCallback,
+	  setDead,
+%	  __pendingQueuePut_return,
+	  activateWorkingProcess,
+	  ___resultsQueueSize,
+	forkProcessThread
+ },comm({
+ 
+ r_getMaxSize|s_getMaxSize->getMaxSize,
+        r_getMinSize | s_getMinSize -> getMinSize,
+        r_getNumWorkingProcesses | s_getNumWorkingProcesses -> getNumWorkingProcesses,
+        r_getNumIdleProcesses | s_getNumIdleProcesses -> getNumIdleProcesses,
+        s__prListLock_acquire | r__prListLock_acquire -> __prListLock_acquire,
+        s__prListLock_release | r__prListLock_release -> __prListLock_release,
+        s_isWorking | r_isWorking -> isWorking,
+        s_taskProcessed | r_taskProcessed -> taskProcessed,
+        s_runWatchdogThread | r_runWatchdogThread -> runWatchdogThread,
+	s_set__working | r_set__working | r_set__working1 -> set__working,
+	r_setTask | s_setTask -> setTask,
+	r_increaseTaskCounter | s_increaseTaskCounter -> increaseTaskCounter,
+	r_runProcessThread | s_runProcessThread -> runProcessThread,
+	r_getStopEvent | s_getStopEvent -> getStopEvent,
+	r_clearTask | s_clearTask -> clearTask,
+	r_joinProcessThread | s_joinProcessThread -> joinProcessThread,
+	r___pendingQueueGet | s___pendingQueueGet -> __pendingQueueGet,
+	r___resultsQueuePut |  s___resultsQueuePut -> __resultsQueuePut,
+	r___pendingQueueSize | s___pendingQueueSize -> __pendingQueueSize,
+	r_setStopEvent | s_setStopEvent -> setStopEvent,
+	s_getRequestsPerCycle | r_getRequestsPerCycle -> getRequestsPerCycle,
+	s_getMinProcess | r_getMinProcess -> getMinProcess,
+	s_getMaxProcess | r_getMaxProcess -> getMaxProcess,
+	s_getQueueSize | r_getQueueSize -> getQueueSize,
+	s_getRequest | r_getRequest -> getRequest,
+	c_s_getNumWorkingProcesses | c_r_getNumWorkingProcesses -> c__getNumWorkingProcesses,
+	r_s_getNumWorkingProcesses | r_r_getNumWorkingProcesses -> r__getNumWorkingProcesses,
+	r_s_getNumIdleProcesses | r_r_getNumIdleProcesses -> r__getNumIdleProcesses,
+	c_s_getNumIdleProcesses | c_r_getNumIdleProcesses -> c__getNumIdleProcesses,
+	s_getFreeSlots | r_getFreeSlots -> getFreeSlots,
+	c_s_createAndQueueTask | c_r_createAndQueueTask -> c__createAndQueueTask,
+%	r_s_createAndQueueTask | r_r_createAndQueueTask -> r__createAndQueueTask,
+	r___pendingQueuePut | s___pendingQueuePut ->  __pendingQueuePut,
+	r___cleanDeadProcesses | s___cleanDeadProcesses -> __cleanDeadProcesses,
+	r_getDraining | s_getDraining -> getDraining,
+	r_getWorkersDict | s_getWorkersDict -> getWorkersDict,
+	r__createWorkingProcess | s__createWorkingProcess -> createWorkingProcess,
+	r_addWorker | s_addWorker -> addWorker,
+	r___resultsQueueGet | s___resultsQueueGet -> __resultsQueueGet,
+	r_setDead | r_setDead1 | r_setDead2 | s_setDead -> setDead,
+%	r___pendingQueuePut_return | s___pendingQueuePut_return -> __pendingQueuePut_return,
+	s_activateWorkingProcess | r_activateWorkingProcess -> activateWorkingProcess,
+	r___resultsQueueSize | s___resultsQueueSize ->  ___resultsQueueSize,
+	s_forkProcessThread | r_forkProcessThread -> forkProcessThread
+}
+,RequestExecutingAgent||RequestClient|| __prListLock ||ProcessPool_getNumWorkingProcesses||ProcessPool_getNumIdleProcesses||OS_ops([1,2])||WorkingProcess(1)||WorkingProcess(2)||ProcessThread(1,11)||ProcessThread(2,12)))));
