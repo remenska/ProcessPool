@@ -1,1 +1,1 @@
-forall d:Nat.val(d > 3) => [true*. getNumWorkingProcesses(d) ] false
+[true*.  __pendingQueueSize(__queueSize) . (! c__createAndQueueTask(task(2,false,RegisterFile)) )*. r__getNumWorkingProcesses(0). (! ( createWorkingProcess(1) || c__createAndQueueTask(task(2,false,RegisterFile)) ))*. c__createAndQueueTask(task(2,false,RegisterFile)) ] false
