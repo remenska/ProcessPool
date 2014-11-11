@@ -130,7 +130,9 @@ proc RequestExecutingAgent = RequestExecutingAgent_mem(__requestsPerCycle,__minP
 proc processPoolSingleton = Queues_mem([],[], __queueSize) ||
 % sort ProcessPoolTuple = struct processPoolTuple(__minSize:Nat,__maxSize:Nat,__maxQueuedRequests:Nat, __workersDict:List(Worker), __draining:Bool, __stopEvent:Bool);
   ProcessPool_mem(processPoolTuple(__minProcess,__maxProcess,__queueSize,[],false)) 
-	    || ProcessPool__spawnNeededWorkingProcesses || ProcessPool_createAndQueueTask || ProcessPool___backgroundProcess 
+% 	    || ProcessPool__spawnNeededWorkingProcesses 
+% || ProcessPool_createAndQueueTask 
+|| ProcessPool___backgroundProcess 
 ;
 
 % RequestExecutingAgent method
@@ -155,7 +157,15 @@ proc RequestExecutingAgent_execute_while(taskCounter:Nat, newTask:Task) =
     sum freeSlots:Nat.s_getFreeSlots(freeSlots).
     (freeSlots==0) -> (
     time_sleep.RequestExecutingAgent_execute_while(taskCounter, newTask) 
-    ) <> c_s_createAndQueueTask(newTask)
+    ) <> 
+
+    (
+c__createAndQueueTask(newTask). 
+  s__prListLock_acquire.  
+    s___pendingQueuePut(newTask).
+    s__prListLock_release.
+    ProcessPool__spawnNeededWorkingProcesses
+)
     %sum retMsg:ReturnMessage.r_r_createAndQueueTask(retMsg).
 %	(retMsg!=S_OK) -> 
 % 	.RequestExecutingAgent_execute_while(taskCounter,newTask) % <-- THIS LINE WAS OFFENDING!!!
@@ -163,19 +173,19 @@ proc RequestExecutingAgent_execute_while(taskCounter:Nat, newTask:Task) =
 ;
 
 % ProcessPool method
-proc ProcessPool_createAndQueueTask = 
-    sum newTask:Task.c_r_createAndQueueTask(newTask).
-    s__prListLock_acquire.  
-    s___pendingQueuePut(newTask).
- % EDITED/COMMENTED: it will just block until there is space in the queue again, because blocking = True in the implementation
-%     sum retMsg:ReturnMessage.r___pendingQueuePut_return(retMsg).
-    s__prListLock_release.
-%     ((retMsg==S_OK) ->
-    ProcessPool__spawnNeededWorkingProcesses
-%     ).
- %   r_s_createAndQueueTask(S_OK)
-.ProcessPool_createAndQueueTask;
-
+% proc ProcessPool_createAndQueueTask = 
+%     sum newTask:Task.c_r_createAndQueueTask(newTask).
+%     s__prListLock_acquire.  
+%     s___pendingQueuePut(newTask).
+%  % EDITED/COMMENTED: it will just block until there is space in the queue again, because blocking = True in the implementation
+% %     sum retMsg:ReturnMessage.r___pendingQueuePut_return(retMsg).
+%     s__prListLock_release.
+% %     ((retMsg==S_OK) ->
+%     ProcessPool__spawnNeededWorkingProcesses
+% %     ).
+%  %   r_s_createAndQueueTask(S_OK)
+% .ProcessPool_createAndQueueTask;
+% 
 
 proc ProcessPool__spawnNeededWorkingProcesses = 
     ProcessPool__cleanDeadProcesses.
@@ -248,8 +258,8 @@ proc OS_ops( workerIDs:List(Nat)) =
 proc RequestClient = 
     (
     r_getRequest(task(1,false, LogUpload)).
-    r_getRequest(task(2,false, RegisterFile))
-%   r_getRequest(task(3,false, RemoveFile))
+    r_getRequest(task(2,false, RegisterFile)).
+  r_getRequest(task(3,false, RemoveFile))
 %     r_getRequest(task(4,false, LogUpload)).
 %     r_getRequest(task(5,false, RegisterFile)).
 %     r_getRequest(task(6,false, RemoveFile))
